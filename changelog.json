@@ -3,14 +3,23 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.2.2",
+      "date": "2026-09-05",
+      "changes": [
+        "O programa agora usa um único arquivo fixo chamado Horizonte_AFK.exe.",
+        "Atualizações futuras substituem o mesmo executável em vez de acumular arquivos v1.2.x.exe.",
+        "Arquivos temporários de atualização são criados fora da pasta do launcher e removidos após o update.",
+        "Removido o loop de reconexão automática que podia deixar o painel preso indefinidamente em Conectando.",
+        "A configuração de conexão voltou a ficar mais próxima do núcleo original que já funcionava no Horizonte.",
+        "Todos os dialogs integrados e o redesign público foram mantidos."
+      ]
+    },
+    {
       "version": "1.2.1",
       "date": "2026-09-05",
       "changes": [
-        "Corrigida a conexão que podia ficar presa em Reconectando.",
-        "O launcher agora resolve o servidor para IPv4 antes de iniciar o núcleo compatível.",
-        "Processos antigos do núcleo que tenham ficado presos são encerrados automaticamente antes de uma nova sessão.",
-        "Se a primeira tentativa falhar, o launcher faz uma única recuperação limpa da conexão em vez de deixar o cliente antigo em loop.",
-        "Todos os dialogs integrados, privacidade e redesign da versão pública foram mantidos."
+        "Tentativa de correção da conexão presa em Reconectando.",
+        "Mantidos todos os dialogs integrados e a interface pública."
       ]
     },
     {
@@ -18,10 +27,8 @@
       "date": "2026-09-05",
       "changes": [
         "Adicionado verificador automático de atualização ao iniciar o launcher.",
-        "Atualizações futuras são baixadas por HTTPS e só aplicadas após validação SHA-256.",
-        "O launcher continua abrindo normalmente caso o GitHub ou a internet estejam indisponíveis.",
-        "Após uma atualização válida, o executável é substituído e reiniciado automaticamente.",
-        "Mantidos o redesign público, a privacidade e todos os dialogs integrados da versão anterior."
+        "Atualizações são validadas por SHA-256 antes de substituir o programa.",
+        "O launcher continua abrindo normalmente caso o GitHub ou a internet estejam indisponíveis."
       ]
     },
     {
@@ -31,8 +38,7 @@
         "Interface pública simplificada e com informações técnicas ocultas.",
         "Suporte aos servidores Horizonte RP #1 até #5.",
         "Dialogs do SA-MP integrados ao painel, incluindo login, senha, 2FA, listas e spawn.",
-        "Modo AFK headless sem abrir o GTA.",
-        "Preparação do canal de atualização automática."
+        "Modo AFK headless sem abrir o GTA."
       ]
     }
   ]
