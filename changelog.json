@@ -3,46 +3,40 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.3.0",
+      "date": "2026-09-05",
+      "changes": [
+        "Reaplicado o redesign público sem alterar o XML de conexão nem a rotina de dialogs da build validada.",
+        "Ao abrir um EXE desatualizado, o updater roda antes do painel e mostra uma tela própria com progresso.",
+        "Enquanto o launcher está aberto, ele verifica novas versões e mostra uma notificação discreta com Atualizar agora e Depois.",
+        "Atualizar agora encerra a sessão, baixa a build, valida SHA-256, substitui o mesmo Horizonte_AFK.exe e reinicia.",
+        "Atualizações da mesma versão também podem ser detectadas por mudança de hash do executável.",
+        "Mantidos todos os dialogs SA-MP integrados, incluindo login, senha, 2FA, listas, confirmações e spawn.",
+        "IPs, caminhos internos e chat bruto continuam ocultos na interface pública."
+      ]
+    },
+    {
       "version": "1.2.3",
       "date": "2026-09-05",
       "changes": [
-        "Restaurado exatamente o modo de conexão da build 1.1.0 que já havia sido validada no Horizonte.",
-        "O núcleo voltou para runmode 2 e para os mesmos parâmetros de FPS da versão funcional.",
-        "Uma falha transitória de conexão não encerra mais o núcleo na primeira tentativa.",
-        "Mantido o formato de um único Horizonte_AFK.exe para todas as atualizações futuras.",
-        "Todos os dialogs integrados, privacidade e redesign público foram mantidos."
+        "Restaurado o modo de conexão da build validada no Horizonte.",
+        "Mantido o formato de um único Horizonte_AFK.exe."
       ]
     },
     {
       "version": "1.2.2",
       "date": "2026-09-05",
       "changes": [
-        "O programa passou a usar um único arquivo fixo chamado Horizonte_AFK.exe.",
-        "Atualizações futuras substituem o mesmo executável em vez de acumular arquivos v1.2.x.exe."
-      ]
-    },
-    {
-      "version": "1.2.1",
-      "date": "2026-09-05",
-      "changes": [
-        "Tentativa de correção da conexão presa em Reconectando."
-      ]
-    },
-    {
-      "version": "1.2.0",
-      "date": "2026-09-05",
-      "changes": [
-        "Adicionado verificador automático de atualização ao iniciar o launcher.",
-        "Atualizações são validadas por SHA-256 antes de substituir o programa."
+        "O programa passou a usar um único arquivo fixo chamado Horizonte_AFK.exe."
       ]
     },
     {
       "version": "1.1.0",
       "date": "2026-09-05",
       "changes": [
-        "Interface pública simplificada e com informações técnicas ocultas.",
+        "Interface pública simplificada.",
         "Suporte aos servidores Horizonte RP #1 até #5.",
-        "Dialogs do SA-MP integrados ao painel, incluindo login, senha, 2FA, listas e spawn.",
+        "Dialogs do SA-MP integrados ao painel.",
         "Modo AFK headless sem abrir o GTA."
       ]
     }
