@@ -3,23 +3,29 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.2.3",
+      "date": "2026-09-05",
+      "changes": [
+        "Restaurado exatamente o modo de conexão da build 1.1.0 que já havia sido validada no Horizonte.",
+        "O núcleo voltou para runmode 2 e para os mesmos parâmetros de FPS da versão funcional.",
+        "Uma falha transitória de conexão não encerra mais o núcleo na primeira tentativa.",
+        "Mantido o formato de um único Horizonte_AFK.exe para todas as atualizações futuras.",
+        "Todos os dialogs integrados, privacidade e redesign público foram mantidos."
+      ]
+    },
+    {
       "version": "1.2.2",
       "date": "2026-09-05",
       "changes": [
-        "O programa agora usa um único arquivo fixo chamado Horizonte_AFK.exe.",
-        "Atualizações futuras substituem o mesmo executável em vez de acumular arquivos v1.2.x.exe.",
-        "Arquivos temporários de atualização são criados fora da pasta do launcher e removidos após o update.",
-        "Removido o loop de reconexão automática que podia deixar o painel preso indefinidamente em Conectando.",
-        "A configuração de conexão voltou a ficar mais próxima do núcleo original que já funcionava no Horizonte.",
-        "Todos os dialogs integrados e o redesign público foram mantidos."
+        "O programa passou a usar um único arquivo fixo chamado Horizonte_AFK.exe.",
+        "Atualizações futuras substituem o mesmo executável em vez de acumular arquivos v1.2.x.exe."
       ]
     },
     {
       "version": "1.2.1",
       "date": "2026-09-05",
       "changes": [
-        "Tentativa de correção da conexão presa em Reconectando.",
-        "Mantidos todos os dialogs integrados e a interface pública."
+        "Tentativa de correção da conexão presa em Reconectando."
       ]
     },
     {
@@ -27,8 +33,7 @@
       "date": "2026-09-05",
       "changes": [
         "Adicionado verificador automático de atualização ao iniciar o launcher.",
-        "Atualizações são validadas por SHA-256 antes de substituir o programa.",
-        "O launcher continua abrindo normalmente caso o GitHub ou a internet estejam indisponíveis."
+        "Atualizações são validadas por SHA-256 antes de substituir o programa."
       ]
     },
     {
