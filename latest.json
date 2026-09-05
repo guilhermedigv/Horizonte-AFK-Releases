@@ -6,9 +6,9 @@
   "available": false,
   "mandatory": false,
   "download_url": null,
-  "sha256": "4b32fbaad2065536a1504f925de2700dda2ff8d27da2beb80d15aa9f07bcc033",
-  "size_bytes": 2743808,
+  "sha256": "9371e54e6b6e3e2527029626fde6d04ae050484a103affcd692b8a4f0f035a7a",
+  "size_bytes": 2744320,
   "encoding": "gzip",
-  "notes": "Build 1.2.0 com verificação automática de atualização ao iniciar, validação SHA-256 e reinicialização automática. O download público fica desativado até o executável ser publicado no canal de releases.",
+  "notes": "Build 1.2.0 com verificação automática por versão e também por hash do próprio EXE, validação SHA-256 e reinicialização automática. O download público fica desativado até o binário ser publicado no canal de releases.",
   "min_supported_version": "1.2.0"
 }
