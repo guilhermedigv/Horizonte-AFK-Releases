@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.2.0",
-  "published_at": "2026-09-05T23:22:00Z",
+  "version": "1.2.1",
+  "published_at": "2026-09-05T23:30:00Z",
   "available": false,
   "mandatory": false,
   "download_url": null,
-  "sha256": "9371e54e6b6e3e2527029626fde6d04ae050484a103affcd692b8a4f0f035a7a",
-  "size_bytes": 2744320,
+  "sha256": "baa465631a2d5a550ee9dfafbdafd224fad5b81dc82c2a890d9db3dc46aaa30a",
+  "size_bytes": 2747392,
   "encoding": "gzip",
-  "notes": "Build 1.2.0 com verificação automática por versão e também por hash do próprio EXE, validação SHA-256 e reinicialização automática. O download público fica desativado até o binário ser publicado no canal de releases.",
+  "notes": "Correção de conexão: resolve o servidor para IPv4 antes de abrir o núcleo, limpa processos antigos presos e faz uma recuperação limpa automática caso a primeira tentativa falhe. Mantidos todos os dialogs integrados e a interface pública.",
   "min_supported_version": "1.2.0"
 }
