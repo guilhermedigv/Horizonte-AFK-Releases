@@ -3,6 +3,17 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.2.0",
+      "date": "2026-09-05",
+      "changes": [
+        "Adicionado verificador automático de atualização ao iniciar o launcher.",
+        "Atualizações futuras são baixadas por HTTPS e só aplicadas após validação SHA-256.",
+        "O launcher continua abrindo normalmente caso o GitHub ou a internet estejam indisponíveis.",
+        "Após uma atualização válida, o executável é substituído e reiniciado automaticamente.",
+        "Mantidos o redesign público, a privacidade e todos os dialogs integrados da versão anterior."
+      ]
+    },
+    {
       "version": "1.1.0",
       "date": "2026-09-05",
       "changes": [
