@@ -1,0 +1,13 @@
+{
+  "product": "Horizonte AFK",
+  "channel": "stable",
+  "version": "1.1.0",
+  "published_at": "2026-09-05T23:30:00Z",
+  "available": false,
+  "mandatory": false,
+  "download_url": null,
+  "sha256": null,
+  "size_bytes": null,
+  "notes": "Canal público criado. A próxima build do launcher já será publicada com atualização automática integrada.",
+  "min_supported_version": "1.1.0"
+}
