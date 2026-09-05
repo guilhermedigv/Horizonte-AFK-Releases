@@ -1,14 +1,13 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.2.2",
-  "published_at": "2026-09-05T23:35:00Z",
+  "version": "1.2.3",
+  "published_at": "2026-09-05T23:40:00Z",
   "available": false,
   "mandatory": false,
   "download_url": null,
-  "sha256": "1778751b1c474fb5adb398146e8696c255dc8cbc51df65420f4e8334d00d7211",
-  "size_bytes": 2771968,
-  "encoding": "gzip",
-  "notes": "Build de arquivo único: o launcher passa a atualizar sempre o mesmo Horizonte_AFK.exe, usando arquivos temporários fora da pasta do usuário e apagando resíduos de updates antigos. A conexão volta ao fluxo simples do núcleo compatível, sem loop infinito de reconexão; se a tentativa falhar, o painel devolve o controle ao usuário. Todos os dialogs integrados foram mantidos.",
+  "sha256": "990726a4dccbfc9fc55ad207fafd18bad9d7860c7afafdc8b76744735ed32e60",
+  "size_bytes": 2766336,
+  "notes": "Correção de regressão na conexão: restaurado exatamente o modo de conexão da build 1.1.0 que havia sido validada no Horizonte. Mantidos o EXE único, auto-update, privacidade e todos os dialogs integrados.",
   "min_supported_version": "1.2.0"
 }
