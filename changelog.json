@@ -3,6 +3,17 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.2.1",
+      "date": "2026-09-05",
+      "changes": [
+        "Corrigida a conexão que podia ficar presa em Reconectando.",
+        "O launcher agora resolve o servidor para IPv4 antes de iniciar o núcleo compatível.",
+        "Processos antigos do núcleo que tenham ficado presos são encerrados automaticamente antes de uma nova sessão.",
+        "Se a primeira tentativa falhar, o launcher faz uma única recuperação limpa da conexão em vez de deixar o cliente antigo em loop.",
+        "Todos os dialogs integrados, privacidade e redesign da versão pública foram mantidos."
+      ]
+    },
+    {
       "version": "1.2.0",
       "date": "2026-09-05",
       "changes": [
