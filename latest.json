@@ -1,13 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.1.0",
-  "published_at": "2026-09-05T23:30:00Z",
+  "version": "1.2.0",
+  "published_at": "2026-09-05T23:22:00Z",
   "available": false,
   "mandatory": false,
   "download_url": null,
-  "sha256": null,
-  "size_bytes": null,
-  "notes": "Canal público criado. A próxima build do launcher já será publicada com atualização automática integrada.",
-  "min_supported_version": "1.1.0"
+  "sha256": "4b32fbaad2065536a1504f925de2700dda2ff8d27da2beb80d15aa9f07bcc033",
+  "size_bytes": 2743808,
+  "encoding": "gzip",
+  "notes": "Build 1.2.0 com verificação automática de atualização ao iniciar, validação SHA-256 e reinicialização automática. O download público fica desativado até o executável ser publicado no canal de releases.",
+  "min_supported_version": "1.2.0"
 }
