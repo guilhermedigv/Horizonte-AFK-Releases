@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "product": "Horizonte AFK",
+  "channel": "stable",
+  "manifest": "https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/latest.json",
+  "changelog": "https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/changelog.json",
+  "check_on_startup": true,
+  "allow_background_download": true,
+  "verify_sha256": true,
+  "restart_after_update": true
+}
