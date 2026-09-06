@@ -1,0 +1,25 @@
+name: Exportar beta3 para debug
+on:
+  push:
+    branches: [debug-beta3-extract]
+    paths:
+      - '.github/workflows/export-beta3-debug.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir artefato
+        run: |
+          sha256sum Horizonte_AFK.exe
+          stat -c '%s' Horizonte_AFK.exe
+      - name: Exportar executável
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizonte-beta3-debug
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
+          retention-days: 1
