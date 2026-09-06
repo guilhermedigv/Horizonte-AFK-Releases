@@ -1,0 +1,94 @@
+name: Promover Horizonte AFK 1.6.4-beta.2
+
+on:
+  push:
+    paths:
+      - '.release-v1.6.4-beta2'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-0600-820e-bf76-32cbca89e274/raw?se=2026-09-06T06%3A44%3A02Z&sp=r&sv=2026-02-06&sr=b&scid=3f5f88d5-2dd6-5f5b-94c3-191adb7dc7a8&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A26%3A48Z&ske=2026-09-06T22%3A26%3A48Z&sks=b&skv=2026-02-06&sig=P3by7Ad3y2OpXVaAJaAj56d/1l%2BxADxqql1nJRCUFv8%3D'
+      ZIP_SHA256: 'fad9ada949dde942fad3f09c1bbe6ff8be87e12ed46cde73064bcf5d0ffb5850'
+      EXE_SHA256: '52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae'
+      EXE_SIZE: '2921472'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar e validar beta direta
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 1 "$ARTIFACT_URL" -o /tmp/Horizonte-AFK-1.6.4-beta2.zip
+          echo "$ZIP_SHA256  /tmp/Horizonte-AFK-1.6.4-beta2.zip" | sha256sum -c -
+          rm -rf /tmp/hz164b2 && mkdir -p /tmp/hz164b2
+          unzip -q /tmp/Horizonte-AFK-1.6.4-beta2.zip -d /tmp/hz164b2
+          test -f /tmp/hz164b2/Horizonte_AFK.exe
+          test "$(sha256sum /tmp/hz164b2/Horizonte_AFK.exe | awk '{print $1}')" = "$EXE_SHA256"
+          test "$(stat -c%s /tmp/hz164b2/Horizonte_AFK.exe)" = "$EXE_SIZE"
+          test "$(od -An -tx1 -N2 /tmp/hz164b2/Horizonte_AFK.exe | tr -d ' \n')" = "4d5a"
+      - name: Preparar metadados beta direta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/hz164b2/Horizonte_AFK.exe ./Horizonte_AFK.exe
+          printf '%s  Horizonte_AFK.exe\n' "$EXE_SHA256" > SHA256SUMS.txt
+          cat > release-candidate.json <<'JSON'
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.4-beta.2",
+            "published_at": "2026-09-06T06:40:00.000Z",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.4-beta.2/Horizonte_AFK.exe",
+            "sha256": "52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae",
+            "size_bytes": 2921472,
+            "encoding": "none",
+            "notes": "Modo 24/7 direto no Horizonte AFK: conexão executada na Discloud com login, 2FA e dialogs respondidos pelo próprio EXE, sem painel web.",
+            "min_supported_version": "1.2.0"
+          }
+          JSON
+          cat > RELEASE_NOTES.md <<'MD'
+          # Horizonte AFK 1.6.4-beta.2
+
+          Beta do modo Cloud 24/7 direto pelo aplicativo.
+
+          - Remove o redirecionamento para painel web.
+          - O botão 24/7 ativa a conexão remota diretamente na Discloud.
+          - Login, senha, 2FA, listas e escolha de spawn continuam aparecendo dentro do Horizonte AFK.
+          - Depois de conectado, a sessão continua na Discloud mesmo com o EXE ou PC fechado.
+          - Ao abrir o EXE novamente, a sessão Cloud é recuperada no painel.
+          - Chave administrativa do backend não é embutida no executável; cada instalação usa credencial própria protegida pelo Windows.
+          - Base local da v1.6.3, bandeja, tela cheia, multi-servidor e updater preservados.
+
+          SHA-256: `52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae`
+          MD
+          python3 - <<'PY'
+          import json
+          p='release-changelog.json'
+          d=json.load(open(p,encoding='utf-8-sig'))
+          d['channel']='beta'
+          d['versions']=[v for v in d.get('versions',[]) if v.get('version')!='1.6.4-beta.2']
+          d['versions'].insert(0,{
+            'version':'1.6.4-beta.2','date':'2026-09-06','changes':[
+              'Modo Cloud 24/7 passa a funcionar diretamente pelo Horizonte AFK, sem abrir navegador.',
+              'Login, 2FA, dialogs, listas e escolha de spawn da sessão remota são exibidos no próprio EXE.',
+              'A sessão roda na Discloud desde o início e continua online quando o computador é desligado.',
+              'Sessões Cloud existentes são recuperadas pelo EXE quando ele for aberto novamente.',
+              'Mantida a conexão local tradicional e os recursos da linha v1.6.3.'
+            ]})
+          open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Promover beta direta para o canal GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Horizonte AFK Release Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe SHA256SUMS.txt release-candidate.json release-changelog.json RELEASE_NOTES.md
+          git commit -m 'Promove executável validado do Horizonte AFK 1.6.4-beta.2'
+          git push
