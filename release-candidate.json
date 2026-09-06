@@ -9,6 +9,6 @@
   "sha256": "943090e36bc9dfac27064642b0b49e486f0161de21b44c5a9bc1ef9d51f51555",
   "size_bytes": 2829824,
   "encoding": "none",
-  "notes": "Correção de identidade do nick no 24/7: sessões antigas de outra conta não são mais anexadas silenciosamente. Build validada.",
+  "notes": "Correção de identidade do nick no 24/7: sessões antigas de outra conta não são mais anexadas silenciosamente. Build validada e pronta para atualização automática.",
   "min_supported_version": "1.2.0"
 }
