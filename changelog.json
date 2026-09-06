@@ -3,6 +3,17 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.3.1",
+      "date": "2026-09-05",
+      "changes": [
+        "Atualização de teste criada somente para validar o sistema automático.",
+        "Nenhuma alteração no núcleo de conexão, dialogs ou design da v1.3.0.",
+        "Ao ser publicada, a v1.3.0 deve exibir o aviso de nova atualização enquanto estiver aberta.",
+        "Ao clicar em Atualizar agora, o launcher deve baixar, validar, substituir o mesmo EXE e reiniciar mostrando v1.3.1.",
+        "Ao abrir a v1.3.0 depois da publicação, a atualização também deve ser aplicada antes do painel principal."
+      ]
+    },
+    {
       "version": "1.3.0",
       "date": "2026-09-05",
       "changes": [
