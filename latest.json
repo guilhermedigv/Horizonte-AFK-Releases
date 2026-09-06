@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.22-beta.1",
-  "published_at": "2026-09-06T20:19:09Z",
+  "version": "1.6.23-beta.1",
+  "published_at": "2026-09-06T21:14:46Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.22-beta.1/Horizonte_AFK.exe",
-  "sha256": "95a2c070c1de78e98552147894e8c6d9e9747a4fc090c978935202fbd6f95184",
-  "size_bytes": 5823488,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.23-beta.1/Horizonte_AFK.exe",
+  "sha256": "b5817379f1446bd0288c256758168aeda56694997dc258e0239af2d7c89c24fe",
+  "size_bytes": 5826560,
   "encoding": "none",
-  "notes": "Corrige o botão Logar e demais respostas de dialogs locais/multi-servidor usando WM_COMMAND direto no dialog nativo oculto. Preserva Cloud 24/7 e as correções anteriores.",
+  "notes": "Corrige de forma estrutural a resposta de dialogs locais/multi-servidor: o launcher envia a resposta diretamente ao sendDialogResponse do núcleo RakSAMP por canal privado, confirma a transição real do dialog e mantém o painel interativo quando a resposta não é aplicada. Usa runtime isolado v11 e preserva nick estrito, contas, Cloud e lifecycle local.",
   "min_supported_version": "1.2.0"
 }
