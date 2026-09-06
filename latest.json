@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.24-beta.1",
-  "published_at": "2026-09-06T22:24:49Z",
+  "version": "1.6.25-beta.1",
+  "published_at": "2026-09-06T22:46:11Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.24-beta.1/Horizonte_AFK.exe",
-  "sha256": "ffe11c5a8819f7f97bc1ecc13603ced2d6ebda2ab1a5dac4507cdde24052dce5",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.25-beta.1/Horizonte_AFK.exe",
+  "sha256": "13c69a8c56a91a0ae4f7b7b9bfad8732203b85d6c58a36d9a428dede05f8d7c2",
   "size_bytes": 5830656,
   "encoding": "none",
-  "notes": "Corrige dialogs com texto corrompido e travamento em Aguardando sua resposta. Remove leitura por offsets absolutos do RakSAMP e usa ponte estável por evento CP1251 + stdin privado, com confirmação real da transição do dialog e limpeza de evento antigo ao reconectar.",
+  "notes": "Corrige a interação com dialogs preservando o stdin privado do RakSAMP; a v1.6.24 reabria CONIN$ e desconectava o pipe usado por !hzdialog. Também reduz polling permanente de UI, contas, multi-servidor e IPC para diminuir uso de CPU e I/O.",
   "min_supported_version": "1.2.0"
 }
