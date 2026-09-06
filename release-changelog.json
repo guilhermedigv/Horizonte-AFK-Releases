@@ -3,6 +3,19 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.8-beta.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Centro de Contas volta a listar e reconciliar contas salvas com sessões Cloud ativas.",
+        "Sessões 24/7 continuam na Discloud ao fechar ou sair do launcher; somente DESCONECTAR/ENCERRAR envia stop explícito.",
+        "Multi-servidor agora processa login, 2FA e dialogs em fila, um servidor por vez.",
+        "Ao concluir ou falhar uma sessão da fila, o próximo servidor é iniciado automaticamente.",
+        "State.json antigo de sessão encerrada não bloqueia mais a fila multi-servidor.",
+        "Atualização do Centro de Contas foi limitada para evitar consultas excessivas à Cloud, mantendo o botão Atualizar imediato.",
+        "Compatível com Horizonte AFK Cloud Discloud DIRECT v0.5.2."
+      ]
+    },
+    {
       "version": "1.6.7-beta.3",
       "date": "2026-09-06",
       "changes": [

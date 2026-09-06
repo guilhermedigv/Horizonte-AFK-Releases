@@ -1,10 +1,13 @@
-# Horizonte AFK 1.6.7-beta.3
+# Horizonte AFK 1.6.8-beta.1
 
-Persistência real do modo 24/7.
+Atualização de correção para o modo 24/7, contas e multi-servidor.
 
-- Fechar o EXE não derruba contas na Discloud.
-- Sair completamente e atualizar o launcher também apenas desacoplam a interface.
-- Somente DESCONECTAR/ENCERRAR no Centro de Contas envia uma parada explícita.
-- Requer Cloud v0.5.1 para garantir a separação entre detach e stop.
+- Centro de Contas volta a listar e reconciliar contas salvas com sessões Cloud ativas.
+- Sessões 24/7 continuam na Discloud ao fechar ou sair do launcher; somente DESCONECTAR/ENCERRAR envia stop explícito.
+- Multi-servidor agora processa login, 2FA e dialogs em fila, um servidor por vez.
+- Ao concluir ou falhar uma sessão da fila, o próximo servidor é iniciado automaticamente.
+- State.json antigo de sessão encerrada não bloqueia mais a fila multi-servidor.
+- Atualização do Centro de Contas foi limitada para evitar consultas excessivas à Cloud, mantendo o botão Atualizar imediato.
+- Compatível com Horizonte AFK Cloud Discloud DIRECT v0.5.2.
 
-SHA-256: f74748e248ca1b3c06d53ec5e34eb4df94917f8004fb2e1340e5cf2300ad2742
+SHA-256: 81d6bc3ea2f8fa05adb6c32cdcd62d95cafe9436ee21399017d134b793730ac6
