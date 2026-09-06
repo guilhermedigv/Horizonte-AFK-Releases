@@ -6,8 +6,7 @@ on:
     paths:
       - "Horizonte_AFK.exe"
       - "Horizonte_AFK_UPDATE_*.exe"
-      - "build/v*/source.tgz.b64"
-      - "build/v*/source-part-*.b64"
+      - "build/v*/READY"
       - ".github/workflows/publish-launcher.yml"
 
 permissions:
