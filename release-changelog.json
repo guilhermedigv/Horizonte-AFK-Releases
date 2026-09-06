@@ -3,6 +3,17 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.4-beta.2",
+      "date": "2026-09-06",
+      "changes": [
+        "Modo Cloud 24/7 passa a funcionar diretamente pelo Horizonte AFK, sem abrir navegador.",
+        "Login, 2FA, dialogs, listas e escolha de spawn da sessão remota são exibidos no próprio EXE.",
+        "A sessão roda na Discloud desde o início e continua online quando o computador é desligado.",
+        "Sessões Cloud existentes são recuperadas pelo EXE quando ele for aberto novamente.",
+        "Mantida a conexão local tradicional e os recursos da linha v1.6.3."
+      ]
+    },
+    {
       "version": "1.6.4-beta",
       "date": "2026-09-06",
       "changes": [

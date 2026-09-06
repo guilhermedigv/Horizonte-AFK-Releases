@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.4-beta",
-  "published_at": "2026-09-06T06:18:00.000Z",
+  "version": "1.6.4-beta.2",
+  "published_at": "2026-09-06T06:40:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.4-beta/Horizonte_AFK.exe",
-  "sha256": "66e64e3aeba26e6d504627167d1cd608dec970219e7fa82eaed169ace0cde51d",
-  "size_bytes": 2905088,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.4-beta.2/Horizonte_AFK.exe",
+  "sha256": "52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae",
+  "size_bytes": 2921472,
   "encoding": "none",
-  "notes": "Beta de teste do modo Cloud 24/7 integrado ao Horizonte AFK, preservando a base da v1.6.3.",
+  "notes": "Modo 24/7 direto no Horizonte AFK: conexão executada na Discloud com login, 2FA e dialogs respondidos pelo próprio EXE, sem painel web.",
   "min_supported_version": "1.2.0"
 }

@@ -1,10 +1,13 @@
-# Horizonte AFK 1.6.4-beta
+# Horizonte AFK 1.6.4-beta.2
 
-Beta de teste da integração Cloud 24/7.
+Beta do modo Cloud 24/7 direto pelo aplicativo.
 
-- Base da v1.6.3 preservada.
-- Adiciona no painel acesso ao modo Cloud 24/7 hospedado em hzrp.discloud.app.
-- Mantém bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA, dialogs e updater.
-- Build compilada e validada no GitHub Actions antes da promoção.
+- Remove o redirecionamento para painel web.
+- O botão 24/7 ativa a conexão remota diretamente na Discloud.
+- Login, senha, 2FA, listas e escolha de spawn continuam aparecendo dentro do Horizonte AFK.
+- Depois de conectado, a sessão continua na Discloud mesmo com o EXE ou PC fechado.
+- Ao abrir o EXE novamente, a sessão Cloud é recuperada no painel.
+- Chave administrativa do backend não é embutida no executável; cada instalação usa credencial própria protegida pelo Windows.
+- Base local da v1.6.3, bandeja, tela cheia, multi-servidor e updater preservados.
 
-SHA-256: `66e64e3aeba26e6d504627167d1cd608dec970219e7fa82eaed169ace0cde51d`
+SHA-256: `52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae`
