@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.23-beta.1",
-  "published_at": "2026-09-06T21:14:46Z",
+  "version": "1.6.24-beta.1",
+  "published_at": "2026-09-06T22:24:49Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.23-beta.1/Horizonte_AFK.exe",
-  "sha256": "b5817379f1446bd0288c256758168aeda56694997dc258e0239af2d7c89c24fe",
-  "size_bytes": 5826560,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.24-beta.1/Horizonte_AFK.exe",
+  "sha256": "ffe11c5a8819f7f97bc1ecc13603ced2d6ebda2ab1a5dac4507cdde24052dce5",
+  "size_bytes": 5830656,
   "encoding": "none",
-  "notes": "Corrige de forma estrutural a resposta de dialogs locais/multi-servidor: o launcher envia a resposta diretamente ao sendDialogResponse do núcleo RakSAMP por canal privado, confirma a transição real do dialog e mantém o painel interativo quando a resposta não é aplicada. Usa runtime isolado v11 e preserva nick estrito, contas, Cloud e lifecycle local.",
+  "notes": "Corrige dialogs com texto corrompido e travamento em Aguardando sua resposta. Remove leitura por offsets absolutos do RakSAMP e usa ponte estável por evento CP1251 + stdin privado, com confirmação real da transição do dialog e limpeza de evento antigo ao reconectar.",
   "min_supported_version": "1.2.0"
 }
