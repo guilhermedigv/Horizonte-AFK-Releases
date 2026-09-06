@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
+          cache: false
 
       - name: Preparar ou compilar executável
         shell: bash
@@ -40,8 +41,6 @@ jobs:
             SOURCE_BUNDLE="$BUILD_ROOT/source.tgz.b64"
             SOURCE_DIR=""
 
-            # A pasta zz-small contém o pacote oficial completo da build atual.
-            # As pastas auxiliares/legadas não devem ser escolhidas por ordem alfabética.
             if compgen -G "$BUILD_ROOT/zz-small/source-part-*.b64" > /dev/null; then
               SOURCE_DIR="$BUILD_ROOT/zz-small"
             elif compgen -G "$BUILD_ROOT/source-part-*.b64" > /dev/null; then
@@ -50,7 +49,15 @@ jobs:
 
             if [ -f "$SOURCE_BUNDLE" ]; then
               echo "Compilando a partir de $SOURCE_BUNDLE"
-              base64 --decode "$SOURCE_BUNDLE" > .build-hz/source.tgz
+              python3 - "$SOURCE_BUNDLE" <<'PY'
+          import base64, pathlib, re, sys
+          src = pathlib.Path(sys.argv[1])
+          text = ''.join(src.read_text(encoding='ascii').split())
+          if not re.fullmatch(r'[A-Za-z0-9+/]*={0,2}', text):
+              raise SystemExit(f'Base64 inválido em {src}')
+          text += '=' * ((-len(text)) % 4)
+          pathlib.Path('.build-hz/source.tgz').write_bytes(base64.b64decode(text, validate=True))
+          PY
             elif [ -n "$SOURCE_DIR" ]; then
               echo "Compilando a partir das partes oficiais em $SOURCE_DIR"
               mapfile -t PARTS < <(find "$SOURCE_DIR" -maxdepth 1 -type f -name 'source-part-*.b64' -print | sort -V)
@@ -65,10 +72,16 @@ jobs:
                 fi
               done
 
-              : > .build-hz/source.tgz
-              for PART in "${PARTS[@]}"; do
-                base64 --decode "$PART" >> .build-hz/source.tgz
-              done
+              python3 - .build-hz/source.tgz "${PARTS[@]}" <<'PY'
+          import base64, pathlib, re, sys
+          out = pathlib.Path(sys.argv[1])
+          parts = [pathlib.Path(p) for p in sys.argv[2:]]
+          text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts)
+          if not re.fullmatch(r'[A-Za-z0-9+/]*={0,2}', text):
+              raise SystemExit('As partes Base64 contêm caracteres ou padding interno inválidos')
+          text += '=' * ((-len(text)) % 4)
+          out.write_bytes(base64.b64decode(text, validate=True))
+          PY
             elif [ -n "$CANDIDATE" ]; then
               cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
             else
