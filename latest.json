@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.21-beta.1",
-  "published_at": "2026-09-06T19:58:32Z",
+  "version": "1.6.22-beta.1",
+  "published_at": "2026-09-06T20:19:09Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.21-beta.1/Horizonte_AFK.exe",
-  "sha256": "cc28db7d33e3da4912c4978e6938677ae8cc0d48e33ec5017e8a142b72f74c0c",
-  "size_bytes": 5821440,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.22-beta.1/Horizonte_AFK.exe",
+  "sha256": "95a2c070c1de78e98552147894e8c6d9e9747a4fc090c978935202fbd6f95184",
+  "size_bytes": 5823488,
   "encoding": "none",
-  "notes": "Restaura dialogs de login, senha, 2FA e listas em conexões locais e multi-servidor usando bridge Win32 estável. Preserva o Cloud 24/7 e o lifecycle local seguro.",
+  "notes": "Corrige o botão Logar e demais respostas de dialogs locais/multi-servidor usando WM_COMMAND direto no dialog nativo oculto. Preserva Cloud 24/7 e as correções anteriores.",
   "min_supported_version": "1.2.0"
 }
