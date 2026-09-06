@@ -1,13 +1,12 @@
-# Horizonte AFK 1.6.12-beta.1
+# Horizonte AFK 1.6.13-beta.1
 
-Correção do Centro de Contas e novas áreas funcionais.
+Chat completo na aba Conexão e correção da camada de dialogs.
 
-- Corrigido o Centro de Contas quando dados antigos vinham como System.Object[]: a leitura agora normaliza arrays e valores de servidor/porta antes de exibir os perfis.
-- A persistência de contas e regras passa a gravar coleções JSON de forma consistente, inclusive quando existe apenas uma conta.
-- A aba CONEXÃO agora abre um painel de chat: texto normal envia chat e /comando envia comando ao servidor pelo mesmo caminho do RakSAMP.
-- Por segurança, comandos internos do RakSAMP iniciados por ! são bloqueados, há limite de tamanho e intervalo mínimo entre envios.
-- A aba CONFIGURAÇÕES agora permite controlar atualizações automáticas, abertura maximizada e modo privado do painel.
-- Dialogs, modo 24/7, multi-servidor, fechamento na bandeja e limpeza dos códigos de cor permanecem preservados.
-- Chat no modo 24/7 requer Horizonte AFK Cloud v0.5.3 ou superior; chat local funciona diretamente nesta versão.
+- A aba CONEXÃO agora lê o chat local diretamente da lista nativa do RakSAMP, em vez de depender de um arquivo de log que podia não existir.
+- No modo 24/7, o chat reutiliza o mesmo console remoto já usado pelo painel de status, mantendo as mensagens do servidor centralizadas na aba CONEXÃO.
+- Mensagens de chat e client messages são exibidas no painel com os códigos de cor do SA-MP removidos.
+- A janela CONEXÃO deixou de ser modal; quando um /comando abre um dialog, o chat é ocultado temporariamente e o dialog integrado recebe foco no launcher principal.
+- Depois de responder ou fechar o dialog, a janela CONEXÃO volta automaticamente para continuar o chat.
+- Mantidos o envio de chat/comandos, bloqueio de comandos internos iniciados por !, 24/7, multi-servidor, Centro de Contas e configurações.
 
-SHA-256: 1ca0d2855f89beca10eba7ca8fbba3e976364a93647996102d8ca1525a06508f
+SHA-256: 649a699cd7889ac1eeaf551ba2fcc763696321f403ca68885b80532b7ace8f0e
