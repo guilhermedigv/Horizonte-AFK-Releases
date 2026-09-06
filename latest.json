@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.15-beta.1",
-  "published_at": "2026-09-06T17:15:04.824611Z",
+  "version": "1.6.16-beta.1",
+  "published_at": "2026-09-06T18:03:48.921578Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.15-beta.1/Horizonte_AFK.exe",
-  "sha256": "943090e36bc9dfac27064642b0b49e486f0161de21b44c5a9bc1ef9d51f51555",
-  "size_bytes": 2829824,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.16-beta.1/Horizonte_AFK.exe",
+  "sha256": "1d4f435d77247f07e475976bdeb81e03f35aec05c84e5a0f6021d4305ecee431",
+  "size_bytes": 5796864,
   "encoding": "none",
-  "notes": "Correção de identidade do nick no 24/7: sessões antigas de outra conta não são mais anexadas silenciosamente. Build validada e pronta para atualização automática.",
+  "notes": "Correção definitiva do nick e separação do chat no modo 24/7: nenhum nick aleatório é criado; CHAT/CMSG aparecem somente em Conexão e Chat.",
   "min_supported_version": "1.2.0"
 }
