@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
-  "channel": "stable",
-  "version": "1.6.3",
-  "published_at": "2026-09-06T05:00:00.000Z",
+  "channel": "beta",
+  "version": "1.6.4-beta",
+  "published_at": "2026-09-06T06:18:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.3/Horizonte_AFK.exe",
-  "sha256": "86a07adcc1508179a0ee134a34821dc3cd6591659d76cdf19e3c03ea98771e6f",
-  "size_bytes": 2902016,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.4-beta/Horizonte_AFK.exe",
+  "sha256": "66e64e3aeba26e6d504627167d1cd608dec970219e7fa82eaed169ace0cde51d",
+  "size_bytes": 2905088,
   "encoding": "none",
-  "notes": "Corrige a regressão da v1.6.2 que podia impedir a abertura do painel; preserva $PSScriptRoot no host e adiciona fallback automático de compatibilidade.",
+  "notes": "Beta de teste do modo Cloud 24/7 integrado ao Horizonte AFK, preservando a base da v1.6.3.",
   "min_supported_version": "1.2.0"
 }

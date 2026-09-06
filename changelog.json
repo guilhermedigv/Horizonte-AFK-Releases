@@ -1,7 +1,17 @@
 {
   "product": "Horizonte AFK",
-  "channel": "stable",
+  "channel": "beta",
   "versions": [
+    {
+      "version": "1.6.4-beta",
+      "date": "2026-09-06",
+      "changes": [
+        "Adicionado acesso ao modo Cloud 24/7 pelo painel do Horizonte AFK.",
+        "A integração usa o serviço hzrp.discloud.app já validado na Discloud.",
+        "Base da v1.6.3, bandeja, multi-servidor, conta adicional, login, 2FA, dialogs e updater foram preservados.",
+        "Versão publicada como beta para teste antes de substituir a versão estável."
+      ]
+    },
     {
       "version": "1.6.3",
       "date": "2026-09-06",
