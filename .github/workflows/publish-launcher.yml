@@ -1,4 +1,4 @@
-name: Diagnosticar fonte Horizonte AFK
+name: Recuperar fonte Horizonte AFK
 
 on:
   push:
@@ -10,13 +10,15 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  recover:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar repositório
+      - name: Baixar histórico completo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Testar pacotes candidatos sem publicar
+      - name: Procurar combinação íntegra no histórico
         shell: bash
         run: |
           set -euo pipefail
@@ -24,85 +26,163 @@ jobs:
           mkdir -p .diag-hz
 
           python3 <<'PY'
-          import base64, gzip, io, pathlib, tarfile
+          import base64
+          import gzip
+          import hashlib
+          import io
+          import itertools
+          import pathlib
+          import re
+          import subprocess
+          import tarfile
 
-          root = pathlib.Path('build/v1.4.0')
-          candidates = [
-              ('oficial-zz-small', [
-                  root/'zz-small/source-part-00.b64',
-                  root/'zz-small/source-part-01.b64',
-                  root/'zz-small/source-part-02.b64',
-                  root/'zz-small/source-part-03.b64',
-                  root/'zz-small/source-part-04.b64',
-              ]),
-              ('raiz-00-02', [
-                  root/'source-part-00.b64',
-                  root/'source-part-01.b64',
-                  root/'source-part-02.b64',
-              ]),
-              ('z-normal-atual', [
-                  root/'z-normal/source-part-00.b64',
-                  root/'z-normal/source-part-01.b64',
-                  root/'z-normal/source-part-03.b64',
-                  root/'z-normal/source-part-04.b64',
-              ]),
-              ('misto-raiz00-02-z03-04', [
-                  root/'source-part-00.b64',
-                  root/'source-part-01.b64',
-                  root/'source-part-02.b64',
-                  root/'z-normal/source-part-03.b64',
-                  root/'z-normal/source-part-04.b64',
-              ]),
-              ('misto-z00-01-raiz02-z03-04', [
-                  root/'z-normal/source-part-00.b64',
-                  root/'z-normal/source-part-01.b64',
-                  root/'source-part-02.b64',
-                  root/'z-normal/source-part-03.b64',
-                  root/'z-normal/source-part-04.b64',
-              ]),
-              ('z-normal-00-01', [
-                  root/'z-normal/source-part-00.b64',
-                  root/'z-normal/source-part-01.b64',
-              ]),
-          ]
+          def git(*args):
+              return subprocess.check_output(['git', *args], text=True, errors='strict')
 
-          valid = []
-          for label, parts in candidates:
-              if not all(p.is_file() for p in parts):
-                  print(f'[{label}] ausente')
-                  continue
-              text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts)
-              padded = text + '=' * ((-len(text)) % 4)
+          commits = [x for x in git('log', '--all', '--format=%H', '--reverse', '--', 'build/v1.4.0').splitlines() if x]
+          by_index = {}
+          seen_blob = set()
+          pat = re.compile(r'^build/v1\.4\.0/(?:.*/)?source-part-(\d+)\.b64$')
+
+          for commit in commits:
+              paths = git('ls-tree', '-r', '--name-only', commit, 'build/v1.4.0').splitlines()
+              for path in paths:
+                  m = pat.match(path)
+                  if not m:
+                      continue
+                  idx = int(m.group(1))
+                  try:
+                      blob = git('rev-parse', f'{commit}:{path}').strip()
+                  except subprocess.CalledProcessError:
+                      continue
+                  key = (idx, blob)
+                  if key in seen_blob:
+                      continue
+                  seen_blob.add(key)
+                  raw_text = subprocess.check_output(['git', 'show', f'{commit}:{path}'])
+                  try:
+                      text = raw_text.decode('ascii')
+                  except UnicodeDecodeError:
+                      continue
+                  clean = ''.join(text.split())
+                  by_index.setdefault(idx, []).append({
+                      'idx': idx,
+                      'blob': blob,
+                      'commit': commit,
+                      'path': path,
+                      'text': clean,
+                  })
+
+          print('=== VARIANTES HISTÓRICAS ===')
+          for idx in sorted(by_index):
+              vals = by_index[idx]
+              print(f'parte {idx:02d}: {len(vals)} variante(s)')
+              for v in vals:
+                  print(f"  {v['blob'][:10]} len={len(v['text'])} {v['commit'][:10]} {v['path']}")
+
+          # Parte 00 precisa começar como gzip depois de decodificada. Isso elimina
+          # blobs que pertencem a outro pacote ou estão truncados no início.
+          if 0 in by_index:
+              filtered = []
+              for v in by_index[0]:
+                  t = v['text']
+                  try:
+                      probe = base64.b64decode(t[:16] + '=' * ((-len(t[:16])) % 4), validate=True)
+                  except Exception:
+                      continue
+                  if probe.startswith(b'\x1f\x8b'):
+                      filtered.append(v)
+              by_index[0] = filtered
+              print(f'parte 00 após filtro gzip: {len(filtered)} variante(s)')
+
+          def validate_raw(raw):
               try:
-                  raw = base64.b64decode(padded, validate=True)
                   gzip.decompress(raw)
                   with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tf:
                       names = tf.getnames()
-                      go_names = [n for n in names if n.endswith('.go')]
-                      if not go_names:
-                          raise ValueError('TAR sem fonte Go')
-                      if not any(pathlib.PurePosixPath(n).name == 'main.go' for n in go_names):
-                          raise ValueError('TAR sem main.go')
-                      out = pathlib.Path('.diag-hz')/label
-                      out.mkdir(parents=True, exist_ok=True)
-                      tf.extractall(out)
-                  valid.append((label, len(raw), names))
-                  print(f'VALIDO [{label}] bytes={len(raw)} entradas={len(names)}')
-              except Exception as exc:
-                  print(f'INVALIDO [{label}] {type(exc).__name__}: {exc}')
+                      gos = [n for n in names if n.endswith('.go')]
+                      if not gos or not any(pathlib.PurePosixPath(n).name == 'main.go' for n in gos):
+                          return None
+                      # Lê os .go para garantir que o TAR não só lista entradas corrompidas.
+                      for n in gos:
+                          f = tf.extractfile(n)
+                          if f is not None:
+                              f.read()
+                      return names
+              except Exception:
+                  return None
 
-          print('\n=== RESULTADO ===')
+          valid = []
+          max_idx = max(by_index) if by_index else -1
+          tested = 0
+          limit = 150000
+
+          for end in range(max_idx, -1, -1):
+              if any(i not in by_index or not by_index[i] for i in range(end + 1)):
+                  continue
+              counts = 1
+              for i in range(end + 1):
+                  counts *= len(by_index[i])
+              print(f'Testando sequência 00..{end:02d}: até {counts} combinação(ões)')
+              for combo in itertools.product(*(by_index[i] for i in range(end + 1))):
+                  tested += 1
+                  if tested > limit:
+                      raise SystemExit(f'Limite de segurança excedido ({limit} combinações)')
+
+                  # Modo A: os arquivos são pedaços de UM texto Base64 contínuo.
+                  texts = [v['text'] for v in combo]
+                  joined = ''.join(texts)
+                  try:
+                      padded = joined + '=' * ((-len(joined)) % 4)
+                      raw = base64.b64decode(padded, validate=True)
+                  except Exception:
+                      raw = None
+                  if raw is not None:
+                      names = validate_raw(raw)
+                      if names:
+                          valid.append(('base64-continuo', combo, raw, names))
+
+                  # Modo B: cada arquivo é Base64 independente de um pedaço binário.
+                  chunks = []
+                  independent_ok = True
+                  for t in texts:
+                      try:
+                          chunks.append(base64.b64decode(t + '=' * ((-len(t)) % 4), validate=True))
+                      except Exception:
+                          independent_ok = False
+                          break
+                  if independent_ok:
+                      raw2 = b''.join(chunks)
+                      names2 = validate_raw(raw2)
+                      if names2:
+                          valid.append(('base64-por-parte', combo, raw2, names2))
+
+                  if valid:
+                      break
+              if valid:
+                  break
+
+          print(f'COMBINACOES_TESTADAS={tested}')
           if not valid:
-              print('Nenhuma combinação conhecida formou um pacote íntegro.')
-              raise SystemExit(2)
+              raise SystemExit('Nenhuma sequência histórica íntegra foi encontrada')
 
-          for label, size, names in valid:
-              print(f'CANDIDATO_VALIDO={label} bytes={size}')
-              print('ARQUIVOS=' + ', '.join(names[:30]))
+          mode, combo, raw, names = valid[0]
+          print('\n=== PACOTE RECUPERADO ===')
+          print(f'MODO={mode}')
+          print(f'BYTES={len(raw)}')
+          print(f'SHA256_TGZ={hashlib.sha256(raw).hexdigest()}')
+          for v in combo:
+              print(f"PARTE_{v['idx']:02d}=blob:{v['blob']} commit:{v['commit']} path:{v['path']} len:{len(v['text'])}")
+          print('ARQUIVOS=' + ', '.join(names[:80]))
+
+          out = pathlib.Path('.diag-hz/source.tgz')
+          out.write_bytes(raw)
+          with tarfile.open(out, mode='r:gz') as tf:
+              tf.extractall('.diag-hz/source')
           PY
 
-          echo "=== INDÍCIOS DE UI/VERSÃO NOS CANDIDATOS VÁLIDOS ==="
-          grep -RniE "Horizonte|1\.4\.0|AFK|site|visual|menu|janela|launcher|updat" .diag-hz --include='*.go' | head -n 120 || true
+          echo "=== INDÍCIOS DE VERSÃO / UI NO FONTE RECUPERADO ==="
+          grep -RniE "Horizonte|1\.4\.0|AFK|horizonte-rp|visual|menu|janela|launcher|update|conectar|servidor" .diag-hz/source --include='*.go' | head -n 180 || true
 
-          # Diagnóstico proposital: não permite que esta execução publique artefato.
+          # Esta execução é somente de recuperação/inspeção. Não publica EXE nem manifesto.
           exit 78
