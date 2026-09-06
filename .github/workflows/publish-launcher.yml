@@ -19,30 +19,68 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
+      - name: Preparar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
       - name: Preparar ou compilar executável
         shell: bash
         run: |
           set -euo pipefail
 
-          SOURCE_BUNDLE="$(find build -type f -path '*/source.tgz.b64' -print 2>/dev/null | sort -V | tail -n 1 || true)"
-          SOURCE_PART="$(find build -type f -path '*/source-part-*.b64' -print 2>/dev/null | sort -V | tail -n 1 || true)"
+          READY_FILE="$(find build -maxdepth 2 -type f -name READY -print 2>/dev/null | sort -V | tail -n 1 || true)"
           CANDIDATE="$(find . -maxdepth 1 -type f -name 'Horizonte_AFK_UPDATE_*.exe' -print -quit || true)"
 
-          if [ -n "$SOURCE_BUNDLE" ] || [ -n "$SOURCE_PART" ]; then
-            rm -rf .build-hz
-            mkdir -p .build-hz
-            if [ -n "$SOURCE_BUNDLE" ]; then
-              echo "Compilando a partir de $SOURCE_BUNDLE"
-              base64 -d "$SOURCE_BUNDLE" > .build-hz/source.tgz
-            else
-              SOURCE_DIR="$(dirname "$SOURCE_PART")"
-              echo "Compilando a partir das partes em $SOURCE_DIR"
-              cat "$SOURCE_DIR"/source-part-*.b64 | base64 -d > .build-hz/source.tgz
+          rm -rf .build-hz
+          mkdir -p .build-hz
+
+          if [ -n "$READY_FILE" ]; then
+            BUILD_ROOT="$(dirname "$READY_FILE")"
+            SOURCE_BUNDLE="$BUILD_ROOT/source.tgz.b64"
+            SOURCE_DIR=""
+
+            # A pasta zz-small contém o pacote oficial completo da build atual.
+            # As pastas auxiliares/legadas não devem ser escolhidas por ordem alfabética.
+            if compgen -G "$BUILD_ROOT/zz-small/source-part-*.b64" > /dev/null; then
+              SOURCE_DIR="$BUILD_ROOT/zz-small"
+            elif compgen -G "$BUILD_ROOT/source-part-*.b64" > /dev/null; then
+              SOURCE_DIR="$BUILD_ROOT"
             fi
-            tar -xzf .build-hz/source.tgz -C .build-hz
-            cd .build-hz
-            GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../Horizonte_AFK.exe .
-            cd ..
+
+            if [ -f "$SOURCE_BUNDLE" ]; then
+              echo "Compilando a partir de $SOURCE_BUNDLE"
+              base64 --decode "$SOURCE_BUNDLE" > .build-hz/source.tgz
+            elif [ -n "$SOURCE_DIR" ]; then
+              echo "Compilando a partir das partes oficiais em $SOURCE_DIR"
+              mapfile -t PARTS < <(find "$SOURCE_DIR" -maxdepth 1 -type f -name 'source-part-*.b64' -print | sort -V)
+              test "${#PARTS[@]}" -gt 0
+
+              for i in "${!PARTS[@]}"; do
+                EXPECTED="source-part-$(printf '%02d' "$i").b64"
+                ACTUAL="$(basename "${PARTS[$i]}")"
+                if [ "$ACTUAL" != "$EXPECTED" ]; then
+                  echo "Parte ausente ou fora de sequência: esperado $EXPECTED, encontrado $ACTUAL" >&2
+                  exit 1
+                fi
+              done
+
+              cat "${PARTS[@]}" | base64 --decode > .build-hz/source.tgz
+            elif [ -n "$CANDIDATE" ]; then
+              cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
+            else
+              echo "Nenhum pacote fonte oficial ou executável candidato foi encontrado em $BUILD_ROOT" >&2
+              exit 1
+            fi
+
+            if [ -f .build-hz/source.tgz ]; then
+              gzip -t .build-hz/source.tgz
+              tar -tzf .build-hz/source.tgz >/dev/null
+              tar -xzf .build-hz/source.tgz -C .build-hz
+              cd .build-hz
+              GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../Horizonte_AFK.exe .
+              cd ..
+            fi
           elif [ -n "$CANDIDATE" ]; then
             cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
           fi
