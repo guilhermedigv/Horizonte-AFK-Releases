@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.4.1",
-  "published_at": "2026-09-06T02:36:08.190Z",
+  "version": "1.5.0",
+  "published_at": "2026-09-06T03:47:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.4.1/Horizonte_AFK.exe",
-  "sha256": "776413237ea1170712eb014ce7f20f9d4e7b98041360eacfde463a87506a32d6",
-  "size_bytes": 2824704,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.5.0/Horizonte_AFK.exe",
+  "sha256": "037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440",
+  "size_bytes": 2840576,
   "encoding": "none",
-  "notes": "Atualização de teste do updater: apenas mudança de versão de 1.4.0 para 1.4.1. Painel, conexão e dialogs inalterados.",
+  "notes": "Fechar agora minimiza e mantém o AFK ativo; adicionados saída completa, tela cheia/F11 e modo multi-servidor com sessões isoladas.",
   "min_supported_version": "1.2.0"
 }
