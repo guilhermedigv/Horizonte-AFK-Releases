@@ -1,0 +1,61 @@
+name: Publicar Horizonte AFK 1.6.16 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.16-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-9d80-820e-afc1-9f523de4b23a/raw?se=2026-09-06T18%3A07%3A57Z&sp=r&sv=2026-02-06&sr=b&scid=f69dae13-fb9d-5c58-a654-14f40415f31f&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T10%3A09%3A47Z&ske=2026-09-07T10%3A09%3A47Z&sks=b&skv=2026-02-06&sig=qpg4B6toP6I9ay7hJmQstAosRvv6vbd/AbUZvMKampA%3D' -o build.zip
+          unzip -j build.zip 'Horizonte_AFK_1.6.16-beta.1.exe' -d out
+          mv out/Horizonte_AFK_1.6.16-beta.1.exe Horizonte_AFK.exe
+          echo '1d4f435d77247f07e475976bdeb81e03f35aec05c84e5a0f6021d4305ecee431  Horizonte_AFK.exe' | sha256sum -c -
+          test "$(stat -c %s Horizonte_AFK.exe)" = '5796864'
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='v1.6.16-beta.1'
+          NOTES='Correção definitiva de identidade do nick: o núcleo não cria mais sufixos aleatórios quando o servidor rejeita o nickname; sessões Cloud conflitantes são encerradas/recriadas com a identidade exata. No modo 24/7, CHAT/CMSG deixam de aparecer no Status do Launcher e ficam somente em Conexão e Chat.'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Horizonte_AFK.exe --clobber
+          else
+            gh release create "$TAG" Horizonte_AFK.exe --title 'Horizonte AFK 1.6.16-beta.1' --notes "$NOTES" --prerelease
+          fi
+          python3 - <<'PY'
+          import json, datetime
+          p='latest.json'
+          with open(p,'r',encoding='utf-8') as f: d=json.load(f)
+          d.update({
+            'product':'Horizonte AFK',
+            'channel':'beta',
+            'version':'1.6.16-beta.1',
+            'published_at':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),
+            'available':True,
+            'mandatory':False,
+            'download_url':'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.16-beta.1/Horizonte_AFK.exe',
+            'sha256':'1d4f435d77247f07e475976bdeb81e03f35aec05c84e5a0f6021d4305ecee431',
+            'size_bytes':5796864,
+            'encoding':'none',
+            'notes':'Correção definitiva do nick e separação do chat no modo 24/7: nenhum nick aleatório é criado; CHAT/CMSG aparecem somente em Conexão e Chat.',
+            'min_supported_version':'1.2.0'
+          })
+          d.pop('parts',None); d.pop('part_encoding',None)
+          with open(p,'w',encoding='utf-8') as f: json.dump(d,f,ensure_ascii=False,indent=2); f.write('\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: apontar updater para 1.6.16-beta.1'
+          git push
