@@ -3,6 +3,19 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.6.2",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigido o comportamento ao clicar no × para manter o Horizonte AFK recuperável pela bandeja enquanto as sessões continuam ativas.",
+        "Removido o ciclo frequente de remoção e recriação do ícone da bandeja, que podia fazer o ícone desaparecer.",
+        "A integração agora observa TaskbarCreated e só refaz o registro do ícone quando o Windows Explorer realmente reconstrói a área de notificação.",
+        "Painel principal e sessões multi-servidor passam a usar um host próprio identificado pelo Windows como Horizonte AFK.",
+        "Processos AFK persistentes deixam de usar powershell.exe como processo visível no Gerenciador de Tarefas.",
+        "Mantida a conexão de uma conta adicional com nick diferente enquanto o modo multi-servidor permanece ativo.",
+        "Núcleo de conexão, login, 2FA, dialogs, tela cheia e updater SHA-256 preservados."
+      ]
+    },
+    {
       "version": "1.6.1",
       "date": "2026-09-06",
       "changes": [
