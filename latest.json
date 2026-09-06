@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.25-beta.1",
-  "published_at": "2026-09-06T22:46:11Z",
+  "version": "1.6.26-beta.1",
+  "published_at": "2026-09-06T23:08:38Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.25-beta.1/Horizonte_AFK.exe",
-  "sha256": "13c69a8c56a91a0ae4f7b7b9bfad8732203b85d6c58a36d9a428dede05f8d7c2",
-  "size_bytes": 5830656,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.26-beta.1/Horizonte_AFK.exe",
+  "sha256": "ff87f216efc933db84553c7d35aaf3c57fc1b91adcad8993a53fbf7f36df7275",
+  "size_bytes": 5834240,
   "encoding": "none",
-  "notes": "Corrige a interação com dialogs preservando o stdin privado do RakSAMP; a v1.6.24 reabria CONIN$ e desconectava o pipe usado por !hzdialog. Também reduz polling permanente de UI, contas, multi-servidor e IPC para diminuir uso de CPU e I/O.",
+  "notes": "Troca a resposta de dialogs para IPC dedicado por arquivo com ACK do núcleo, removendo a disputa com a UI/stdin nativos do RakSAMP. Mantém as otimizações de polling e os demais recursos.",
   "min_supported_version": "1.2.0"
 }
