@@ -72,14 +72,13 @@ required = [
     core_hash,
     lua_hash,
     "runUpdater(selfPath)",
-    "applyFeaturePatch",
 ]
 for needle in required:
     if needle not in s:
         raise SystemExit(f"wrapper invariant missing: {needle}")
 
-# Function may remain compiled from features.go, but the full extracted PS runtime
-# must never be passed through it again.
+# The function itself remains available in features.go for build compatibility,
+# but this wrapper must never call it against the already-complete 1.6.24 runtime.
 if "ps = applyFeaturePatch(ps)" in s:
     raise SystemExit("wrapper would reapply legacy feature patch")
 
