@@ -1,12 +1,12 @@
-# Horizonte AFK 1.6.6-beta.1
+# Horizonte AFK 1.6.6-beta.2
 
-Reintrodução segura do modo Cloud 24/7.
+Diagnóstico melhorado do modo Cloud 24/7.
 
-- O botão 24/7 funciona dentro do próprio Horizonte AFK, sem redirecionar para navegador.
-- A sessão RakSAMP é criada na Discloud; login, 2FA e dialogs são respondidos pelo EXE.
-- Corrige a regressão da beta anterior que podia iniciar sem mostrar nenhuma janela.
-- O script PowerShell/WPF final agora é analisado e carregado em teste real antes da build ser aceita.
-- Foi adicionado fallback seguro: uma falha na integração Cloud não impede o modo local de abrir.
-- O backend Discloud precisa estar na versão 0.4.0 com direct_client=true para ativar o modo direto.
+- O painel de log do EXE mostra o console/chat real do RakSAMP executado na Discloud.
+- Mensagens do servidor, [CMSG], conexão, spawn, fechamento e bloqueios ficam visíveis para diagnóstico.
+- Com o backend Cloud 0.4.1, o EXE também mostra o IP público estimado da saída HTTP da Discloud.
+- O IP é apenas uma estimativa de egress; para whitelist definitiva, confirme o IP visto pelo próprio servidor SA-MP.
+- A versão interna do updater agora é 1.6.6-beta.2, alinhada à release.
+- O fail-safe continua ativo: falha na camada de diagnóstico não deve quebrar o modo local nem impedir a janela de abrir.
 
 SHA-256: 

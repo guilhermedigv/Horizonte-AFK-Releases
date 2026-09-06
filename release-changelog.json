@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.6-beta.2",
+      "date": "2026-09-06",
+      "changes": [
+        "A área de log passa a mostrar a saída real do RakSAMP na Discloud, incluindo mensagens [CMSG] e eventos de conexão.",
+        "Adicionado diagnóstico do IP público estimado da nuvem quando o backend 0.4.1 estiver instalado.",
+        "Corrigida a versão interna do updater para corresponder à versão publicada e evitar atualização repetida.",
+        "A camada de diagnóstico possui fail-safe e não impede o modo local ou a interface de abrirem se algo falhar."
+      ]
+    },
+    {
       "version": "1.6.6-beta.1",
       "date": "2026-09-06",
       "changes": [

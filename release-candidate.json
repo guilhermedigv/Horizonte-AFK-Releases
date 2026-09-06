@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.6-beta.1",
-  "published_at": "2026-09-06T07:13:00.000Z",
+  "version": "1.6.6-beta.2",
+  "published_at": "2026-09-06T07:34:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.1/Horizonte_AFK.exe",
-  "sha256": "b340487ff3b0da37c921e7df8bc1729864e04387927784fe93cc72a90b3214a2",
-  "size_bytes": 2921984,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.2/Horizonte_AFK.exe",
+  "sha256": "9da92e8ab44e6888489358e13f598ca4aa03f4d3aa4ed9133fcf8452acb54899",
+  "size_bytes": 2926592,
   "encoding": "none",
-  "notes": "Reintroduz o modo 24/7 direto no EXE com correção da falha de abertura, teste real de inicialização WPF e fallback seguro para o modo local.",
+  "notes": "Adiciona chat/console puro da sessão Cloud e diagnóstico do IP público estimado da Discloud, mantendo fail-safe do modo local.",
   "min_supported_version": "1.2.0"
 }
