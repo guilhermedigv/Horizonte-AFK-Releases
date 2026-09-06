@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.7-beta.1",
-  "published_at": "2026-09-06T08:33:00.000Z",
+  "version": "1.6.7-beta.2",
+  "published_at": "2026-09-06T09:06:16.708587Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.7-beta.1/Horizonte_AFK.exe",
-  "sha256": "51991a6e88d2b19eb38db37d44f3a091e6c31930ffa702cef4aefd7d4fc87c0f",
-  "size_bytes": 2956288,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.7-beta.2/Horizonte_AFK.exe",
+  "sha256": "7cda729688f3ec8f729115ff6a78f7c9f19c4dc42f1b72079319f798781553fa",
+  "size_bytes": 2982400,
   "encoding": "none",
-  "notes": "Adiciona Centro de Contas com sessões locais/nuvem, login rápido aprendido e persistência das sessões Cloud ao fechar o EXE.",
+  "notes": "Corrige a aplicação do Centro de Contas e garante que a interface final seja carregada e validada antes da publicação.",
   "min_supported_version": "1.2.0"
 }

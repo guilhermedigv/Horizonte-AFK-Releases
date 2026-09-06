@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.7-beta.2",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigida a aplicação silenciosa do Centro de Contas que fazia a interface permanecer visualmente na v1.6.6-beta.4.",
+        "A nova aba CONTAS agora é exigida na validação do executável final antes da publicação.",
+        "Adicionado teste do PowerShell final e carregamento real da janela WPF para impedir promoção de builds com falha de runtime.",
+        "Mantidos Centro de Contas, sessões locais/nuvem, login rápido, persistência Cloud e o fail-safe do modo local."
+      ]
+    },
+    {
       "version": "1.6.7-beta.1",
       "date": "2026-09-06",
       "changes": [
