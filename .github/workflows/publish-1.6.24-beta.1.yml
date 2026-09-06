@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.24 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.24-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-8318-820e-8e9c-ed6fc3482349/raw?se=2026-09-06T22%3A29%3A17Z&sp=r&sv=2026-02-06&sr=b&scid=11a58d35-f689-5c7e-913a-614f2a5787c7&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T21%3A31%3A26Z&ske=2026-09-07T21%3A31%3A26Z&sks=b&skv=2026-02-06&sig=wDJnvRJytiRAAWnVgYvyIDo0eOGUxbmKRQkWCGaHyqs%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK_1.6.24-beta.1.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5830656'
+          test "$SHA" = 'ffe11c5a8819f7f97bc1ecc13603ced2d6ebda2ab1a5dac4507cdde24052dce5'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "EXE SHA256=$SHA SIZE=$SIZE"
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a causa raiz dos dialogs corrompidos e do estado preso em Aguardando sua resposta. A v1.6.23 ainda lia TABLIST/TABLIST_HEADERS por endereços absolutos de memória de uma build antiga do RakSAMP; após recompilar o núcleo, esses offsets passaram a apontar para bytes incorretos, exibindo lixo binário e impedindo confirmação confiável da resposta. A v1.6.24 substitui esse caminho por uma ponte estável do próprio núcleo: o RakSAMP publica o dialog em evento/arquivo atômico com texto CP1251 e recebe a resposta pelo stdin privado já existente. A resposta só é considerada concluída quando o dialog realmente some ou muda. Também limpa eventos antigos antes de cada nova conexão. Preserva layout, nick estrito, contas, Cloud 24/7, multi-servidor e lifecycle local.'
+          if gh release view 'v1.6.24-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.24-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.24-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.24-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.24-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.24-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige dialogs com texto corrompido e travamento em Aguardando sua resposta. Remove leitura por offsets absolutos do RakSAMP e usa ponte estável por evento CP1251 + stdin privado, com confirmação real da transição do dialog e limpeza de evento antigo ao reconectar.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json Horizonte_AFK.exe
+          git commit -m 'release: v1.6.24-beta.1' || true
+          git push
