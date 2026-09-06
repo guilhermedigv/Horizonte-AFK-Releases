@@ -1,10 +1,10 @@
-# Horizonte AFK 1.6.7-beta.2
+# Horizonte AFK 1.6.7-beta.3
 
-Correção do Centro de Contas e validação reforçada.
+Persistência real do modo 24/7.
 
-- Corrige o caso em que o atualizador instalava a beta nova, mas a camada de CONTAS falhava e a interface continuava parecendo a v1.6.6-beta.4.
-- A aba CONTAS passa a ser obrigatória no teste da build final.
-- O PowerShell final e a janela WPF são carregados durante a validação antes da publicação.
-- Mantém sessões locais/nuvem, login rápido, persistência Cloud e fail-safe do modo local.
+- Fechar o EXE não derruba contas na Discloud.
+- Sair completamente e atualizar o launcher também apenas desacoplam a interface.
+- Somente DESCONECTAR/ENCERRAR no Centro de Contas envia uma parada explícita.
+- Requer Cloud v0.5.1 para garantir a separação entre detach e stop.
 
-SHA-256: 7cda729688f3ec8f729115ff6a78f7c9f19c4dc42f1b72079319f798781553fa
+SHA-256: f74748e248ca1b3c06d53ec5e34eb4df94917f8004fb2e1340e5cf2300ad2742

@@ -3,6 +3,17 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.7-beta.3",
+      "date": "2026-09-06",
+      "changes": [
+        "Fechar o Horizonte AFK ou usar Sair completamente não encerra mais sessões 24/7 na Discloud.",
+        "Atualizações/reinício do launcher apenas desacoplam a interface da sessão Cloud.",
+        "Uma sessão Cloud só é encerrada quando o usuário usa DESCONECTAR/ENCERRAR explicitamente no Centro de Contas.",
+        "O cliente deixou de usar DELETE genérico para parar contas e passa a usar o endpoint explícito /stop.",
+        "Exige Cloud v0.5.1 com explicit_stop_v2 e detach_safe para ativar novas conexões."
+      ]
+    },
+    {
       "version": "1.6.7-beta.2",
       "date": "2026-09-06",
       "changes": [
