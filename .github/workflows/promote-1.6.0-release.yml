@@ -1,0 +1,71 @@
+name: Promover Horizonte AFK 1.6.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'staging/v1.6.0/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Baixar artefato privado validado
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 2 -o /tmp/Horizonte-AFK-1.6.0.zip 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-5974-820e-a737-3430542d0c55/raw?se=2026-09-06T04%3A15%3A10Z&sp=r&sv=2026-02-06&sr=b&scid=7de61560-f8ce-5ca7-8678-774595f9c56e&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T13%3A25%3A15Z&ske=2026-09-06T13%3A25%3A15Z&sks=b&skv=2026-02-06&sig=fRc63CGtNE%2BCtw1B76vgY7V4WmdZger27srdnvGbALQ%3D'
+          echo '5bc91c371335d9b582349e52c23a2141d9ea0265d0f532e924f43bdc298c1d4a  /tmp/Horizonte-AFK-1.6.0.zip' | sha256sum -c -
+          rm -rf /tmp/hz160 && mkdir -p /tmp/hz160
+          unzip -q /tmp/Horizonte-AFK-1.6.0.zip -d /tmp/hz160
+          test -f /tmp/hz160/Horizonte_AFK.exe
+          test "$(stat -c%s /tmp/hz160/Horizonte_AFK.exe)" = '2881536'
+          echo '12f80c8212576bacc3bb4a602462b7da0e8f9630b0e0b00157bfdf23a7a8299b  /tmp/hz160/Horizonte_AFK.exe' | sha256sum -c -
+          test "$(dd if=/tmp/hz160/Horizonte_AFK.exe bs=1 count=2 status=none)" = 'MZ'
+          cp /tmp/hz160/Horizonte_AFK.exe Horizonte_AFK.exe
+
+      - name: Preparar metadados oficiais
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, datetime
+          meta = {
+            'product': 'Horizonte AFK',
+            'channel': 'stable',
+            'version': '1.6.0',
+            'published_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
+            'available': True,
+            'mandatory': False,
+            'download_url': 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.0/Horizonte_AFK.exe',
+            'sha256': '12f80c8212576bacc3bb4a602462b7da0e8f9630b0e0b00157bfdf23a7a8299b',
+            'size_bytes': 2881536,
+            'encoding': 'none',
+            'notes': 'Fechar agora envia o app para a bandeja; ícone do Horizonte integrado ao Windows e multi-servidor centralizado em um único painel visível.',
+            'min_supported_version': '1.2.0'
+          }
+          with open('release-candidate.json','w',encoding='utf-8') as f:
+              json.dump(meta,f,ensure_ascii=False,indent=2)
+              f.write('\n')
+          PY
+          printf '%s  %s\n' '12f80c8212576bacc3bb4a602462b7da0e8f9630b0e0b00157bfdf23a7a8299b' 'Horizonte_AFK.exe' > SHA256SUMS.txt
+
+      - name: Promover EXE validado
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Horizonte AFK Release Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm -r staging/v1.6.0
+          git rm .github/workflows/promote-1.6.0-release.yml
+          git add Horizonte_AFK.exe release-candidate.json SHA256SUMS.txt
+          git commit -m 'Promove executável validado do Horizonte AFK 1.6.0'
+          git pull --rebase origin main
+          git push origin main
