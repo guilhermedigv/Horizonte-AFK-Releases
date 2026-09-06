@@ -9,6 +9,6 @@
   "sha256": "957f866334a4248ed8043aae63fffe2a048d632ae5bba72dd0f40d7e377607ab",
   "size_bytes": 2805760,
   "encoding": "none",
-  "notes": "Correção visual dos dialogs: códigos de cor/formatação do SA-MP não aparecem mais como texto.",
+  "notes": "Correção visual dos dialogs: códigos de cor/formatação do SA-MP não aparecem mais como texto. Build validada.",
   "min_supported_version": "1.2.0"
 }
