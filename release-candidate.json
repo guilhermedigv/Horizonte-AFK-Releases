@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.10-beta.1",
-  "published_at": "2026-09-06T15:57:21.894403Z",
+  "version": "1.6.11-beta.1",
+  "published_at": "2026-09-06T16:06:04.355675Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.10-beta.1/Horizonte_AFK.exe",
-  "sha256": "7980d8fed85e302c5186c919a5634d9401824c3f9549857ee0b5a2783eb108a5",
-  "size_bytes": 2805248,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.11-beta.1/Horizonte_AFK.exe",
+  "sha256": "957f866334a4248ed8043aae63fffe2a048d632ae5bba72dd0f40d7e377607ab",
+  "size_bytes": 2805760,
   "encoding": "none",
-  "notes": "Correção do modo 24/7 e Centro de Contas: removido conflito com a variável Host do PowerShell e restaurada persistência/listagem das contas. Build validada.",
+  "notes": "Correção visual dos dialogs: códigos de cor/formatação do SA-MP não aparecem mais como texto.",
   "min_supported_version": "1.2.0"
 }

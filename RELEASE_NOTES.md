@@ -1,11 +1,10 @@
-# Horizonte AFK 1.6.10-beta.1
+# Horizonte AFK 1.6.11-beta.1
 
-Hotfix do modo 24/7 e Centro de Contas.
+Correção visual dos dialogs do servidor.
 
-- Corrigido o erro do PowerShell em que a variável automática Host, que é somente leitura, impedia o modo 24/7 de iniciar.
-- Corrigida a gravação de contas no accounts-v1.json; contas usadas ou salvas passam a aparecer novamente no Centro de Contas.
-- Centro de Contas volta a reconciliar contas salvas com sessões 24/7 ativas da Discloud.
-- Conexão local continua independente: falhas de persistência de conta não interrompem o RakSAMP.
-- Mantidas as correções de fila multi-servidor, persistência ao fechar o launcher e Cloud Discloud v0.5.2.
+- Removidos dos dialogs os códigos de cor do SA-MP, como {008BFF}, {FFFFFF} e {27AE60}, que estavam aparecendo como texto.
+- Título, corpo, opções de lista e botões dos dialogs agora são exibidos limpos, sem marcadores de formatação do servidor.
+- As respostas enviadas ao servidor continuam usando os valores originais, evitando quebrar login, spawn e seleções.
+- Mantidas as correções do modo 24/7, Centro de Contas e multi-servidor das versões anteriores.
 
-SHA-256: 7980d8fed85e302c5186c919a5634d9401824c3f9549857ee0b5a2783eb108a5
+SHA-256: 957f866334a4248ed8043aae63fffe2a048d632ae5bba72dd0f40d7e377607ab
