@@ -1,12 +1,10 @@
-# Horizonte AFK 1.6.13-beta.1
+# Horizonte AFK 1.6.14-beta.1
 
-Chat completo na aba Conexão e correção da camada de dialogs.
+Correção do envio por ENTER na aba Conexão e Chat.
 
-- A aba CONEXÃO agora lê o chat local diretamente da lista nativa do RakSAMP, em vez de depender de um arquivo de log que podia não existir.
-- No modo 24/7, o chat reutiliza o mesmo console remoto já usado pelo painel de status, mantendo as mensagens do servidor centralizadas na aba CONEXÃO.
-- Mensagens de chat e client messages são exibidas no painel com os códigos de cor do SA-MP removidos.
-- A janela CONEXÃO deixou de ser modal; quando um /comando abre um dialog, o chat é ocultado temporariamente e o dialog integrado recebe foco no launcher principal.
-- Depois de responder ou fechar o dialog, a janela CONEXÃO volta automaticamente para continuar o chat.
-- Mantidos o envio de chat/comandos, bloqueio de comandos internos iniciados por !, 24/7, multi-servidor, Centro de Contas e configurações.
+- Corrigido o fechamento inesperado do EXE ao pressionar ENTER no campo da aba CONEXÃO E CHAT.
+- A tecla ENTER agora é interceptada antes da ação padrão da janela e envia pelo mesmo fluxo seguro de chat/comando.
+- Removida a dependência do handler de teclado em uma variável local que já não existia quando a tecla era pressionada.
+- O botão ENVIAR continua com o mesmo comportamento e as correções de chat/dialog da 1.6.13 foram preservadas.
 
-SHA-256: 649a699cd7889ac1eeaf551ba2fcc763696321f403ca68885b80532b7ace8f0e
+SHA-256: a6474a1873c269c595a649dc33c9f9ea9985204a47061f3ef8d22d93f8d6023e

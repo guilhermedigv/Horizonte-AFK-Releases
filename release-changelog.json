@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.14-beta.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigido o fechamento inesperado do EXE ao pressionar ENTER no campo da aba CONEXÃO E CHAT.",
+        "A tecla ENTER agora é interceptada antes da ação padrão da janela e envia pelo mesmo fluxo seguro de chat/comando.",
+        "Removida a dependência do handler de teclado em uma variável local que já não existia quando a tecla era pressionada.",
+        "O botão ENVIAR continua com o mesmo comportamento e as correções de chat/dialog da 1.6.13 foram preservadas."
+      ]
+    },
+    {
       "version": "1.6.13-beta.1",
       "date": "2026-09-06",
       "changes": [
