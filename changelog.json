@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.6-beta.3",
+      "date": "2026-09-06",
+      "changes": [
+        "Modo 24/7 não tenta mais spawnar imediatamente ao conectar.",
+        "O RakSAMP Cloud permanece conectado processando RPCs/scripts para que login, 2FA e outros dialogs apareçam primeiro no EXE.",
+        "Mantém o chat/console puro da nuvem e o diagnóstico de IP da beta anterior.",
+        "Mantém o fail-safe: uma falha na camada Cloud não impede o modo local de abrir."
+      ]
+    },
+    {
       "version": "1.6.6-beta.2",
       "date": "2026-09-06",
       "changes": [

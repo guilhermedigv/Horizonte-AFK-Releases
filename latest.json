@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.6-beta.2",
-  "published_at": "2026-09-06T07:35:00.000Z",
+  "version": "1.6.6-beta.3",
+  "published_at": "2026-09-06T07:50:30.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.2/Horizonte_AFK.exe",
-  "sha256": "9da92e8ab44e6888489358e13f598ca4aa03f4d3aa4ed9133fcf8452acb54899",
-  "size_bytes": 2926592,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.3/Horizonte_AFK.exe",
+  "sha256": "04c614d20aacd07ed9e4cff4aeb07acfab3ce8339bb3fa4d7a58932a99453ce5",
+  "size_bytes": 2928128,
   "encoding": "none",
-  "notes": "Adiciona chat/console puro da sessão Cloud e diagnóstico do IP público estimado da Discloud, mantendo fail-safe do modo local.",
+  "notes": "Corrige o fluxo inicial do modo 24/7 para impedir spawn automático antes do login/2FA e permitir observar os dialogs do servidor com segurança.",
   "min_supported_version": "1.2.0"
 }
