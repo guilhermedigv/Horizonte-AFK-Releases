@@ -1,10 +1,12 @@
-# Horizonte AFK 1.6.5-hotfix
+# Horizonte AFK 1.6.6-beta.1
 
-Correção emergencial de recuperação.
+Reintrodução segura do modo Cloud 24/7.
 
-- Remove temporariamente a integração Cloud 24/7 que causou falha de abertura em alguns builds beta.
-- Restaura integralmente a base comprovadamente estável da v1.6.3.
-- Mantém updater, bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA e dialogs locais.
-- O modo Cloud será reintegrado depois em uma beta separada, sem afetar a versão estável.
+- O botão 24/7 funciona dentro do próprio Horizonte AFK, sem redirecionar para navegador.
+- A sessão RakSAMP é criada na Discloud; login, 2FA e dialogs são respondidos pelo EXE.
+- Corrige a regressão da beta anterior que podia iniciar sem mostrar nenhuma janela.
+- O script PowerShell/WPF final agora é analisado e carregado em teste real antes da build ser aceita.
+- Foi adicionado fallback seguro: uma falha na integração Cloud não impede o modo local de abrir.
+- O backend Discloud precisa estar na versão 0.4.0 com direct_client=true para ativar o modo direto.
 
-SHA-256: `4f9f7424021ed824413f637d21a9561a1b34de6be29ba36b5ef877a377c2d862`
+SHA-256: 
