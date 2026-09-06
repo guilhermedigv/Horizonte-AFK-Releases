@@ -1,0 +1,80 @@
+name: Promover Horizonte AFK 1.6.9 beta1
+on:
+  push:
+    branches: [publish-1.6.9-beta.1]
+    paths:
+      - '.github/workflows/promote-1.6.9-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-53f8-820e-b114-b11a74bc5740/raw?se=2026-09-06T15%3A50%3A07Z&sp=r&sv=2026-02-06&sr=b&scid=fead9af9-fa86-5adc-bddc-1b0bcd524c2a&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A12%3A48Z&ske=2026-09-06T22%3A12%3A48Z&sks=b&skv=2026-02-06&sig=EjGx86XpGjgJJWj7m%2BoKmPqt8kGW6EVey99aqEv0jfQ%3D'
+      VERSION: '1.6.9-beta.1'
+      EXPECTED_SHA: '337e466a2fdabe6b7d2dae140837c19c7ce29698d0e685cfd0e21568f37a2571'
+      EXPECTED_SIZE: '2805248'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Baixar build validada
+        run: |
+          curl -fL --retry 3 "$ARTIFACT_URL" -o /tmp/hz-artifact.zip
+          rm -rf /tmp/hz-artifact
+          mkdir -p /tmp/hz-artifact
+          unzip -q /tmp/hz-artifact.zip -d /tmp/hz-artifact
+          test -f "/tmp/hz-artifact/Horizonte_AFK_1.6.9-beta.1.exe"
+          cp "/tmp/hz-artifact/Horizonte_AFK_1.6.9-beta.1.exe" /tmp/Horizonte_AFK.exe
+          python3 - <<'PY'
+          import hashlib, os
+          p='/tmp/Horizonte_AFK.exe'
+          d=open(p,'rb').read()
+          assert d[:2] == b'MZ'
+          assert len(d) == int(os.environ['EXPECTED_SIZE'])
+          assert hashlib.sha256(d).hexdigest() == os.environ['EXPECTED_SHA']
+          print('Build validada:', len(d), hashlib.sha256(d).hexdigest())
+          PY
+      - name: Preparar atualização oficial
+        run: |
+          git checkout main
+          git pull --ff-only origin main
+          cp /tmp/Horizonte_AFK.exe Horizonte_AFK.exe
+          python3 - <<'PY'
+          import json, os, datetime, pathlib
+          root=pathlib.Path('.')
+          v=os.environ['VERSION']
+          sha=os.environ['EXPECTED_SHA']
+          size=int(os.environ['EXPECTED_SIZE'])
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z')
+          url=f'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v{v}/Horizonte_AFK.exe'
+          candidate={
+            'product':'Horizonte AFK','channel':'beta','version':v,'published_at':now,
+            'available':True,'mandatory':False,'download_url':url,'sha256':sha,
+            'size_bytes':size,'encoding':'none',
+            'notes':'Hotfix de conexão local: falhas do Centro de Contas não bloqueiam mais o RakSAMP e erros reais passam a aparecer no painel.',
+            'min_supported_version':'1.2.0'
+          }
+          root.joinpath('release-candidate.json').write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          path=root/'release-changelog.json'
+          changelog=json.loads(path.read_text(encoding='utf-8-sig'))
+          changes=[
+            'Corrigida regressão da 1.6.8-beta.1 que podia impedir até a conexão local antes de iniciar o RakSAMP.',
+            'Falhas ao registrar/sincronizar uma conta no Centro de Contas não interrompem mais o fluxo de conexão local.',
+            'Em caso de nova falha ao conectar, o painel e o log agora mostram a causa real em vez da mensagem genérica.',
+            'Mantidas as correções de persistência 24/7, reconciliação de contas e fila multi-servidor da versão anterior.',
+            'A versão foi elevada para 1.6.9-beta.1 para impedir o updater antigo de interpretar betas do mesmo 1.6.8 como equivalentes e regredir o executável.'
+          ]
+          versions=[x for x in changelog.get('versions',[]) if x.get('version')!=v]
+          versions.insert(0,{'version':v,'date':'2026-09-06','changes':changes})
+          changelog['channel']='beta'; changelog['versions']=versions
+          path.write_text(json.dumps(changelog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          notes='# Horizonte AFK 1.6.9-beta.1\n\nHotfix para a regressão de conexão da 1.6.8-beta.1.\n\n' + ''.join(f'- {x}\n' for x in changes) + f'\nSHA-256: {sha}\n'
+          root.joinpath('RELEASE_NOTES.md').write_text(notes,encoding='utf-8')
+          root.joinpath('SHA256SUMS.txt').write_text(f'{sha}  Horizonte_AFK.exe\n',encoding='utf-8')
+          PY
+          git config user.name 'Horizonte AFK Publisher'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe release-candidate.json release-changelog.json RELEASE_NOTES.md SHA256SUMS.txt
+          git commit -m 'release: Horizonte AFK 1.6.9-beta.1'
+          git push origin main
