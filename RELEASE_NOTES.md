@@ -1,11 +1,11 @@
-# Horizonte AFK 1.6.9-beta.1
+# Horizonte AFK 1.6.10-beta.1
 
-Hotfix para a regressão de conexão da 1.6.8-beta.1.
+Hotfix do modo 24/7 e Centro de Contas.
 
-- Corrigida regressão da 1.6.8-beta.1 que podia impedir até a conexão local antes de iniciar o RakSAMP.
-- Falhas ao registrar/sincronizar uma conta no Centro de Contas não interrompem mais o fluxo de conexão local.
-- Em caso de nova falha ao conectar, o painel e o log agora mostram a causa real em vez da mensagem genérica.
-- Mantidas as correções de persistência 24/7, reconciliação de contas e fila multi-servidor da versão anterior.
-- A versão foi elevada para 1.6.9-beta.1 para impedir o updater antigo de interpretar betas do mesmo 1.6.8 como equivalentes e regredir o executável.
+- Corrigido o erro do PowerShell em que a variável automática Host, que é somente leitura, impedia o modo 24/7 de iniciar.
+- Corrigida a gravação de contas no accounts-v1.json; contas usadas ou salvas passam a aparecer novamente no Centro de Contas.
+- Centro de Contas volta a reconciliar contas salvas com sessões 24/7 ativas da Discloud.
+- Conexão local continua independente: falhas de persistência de conta não interrompem o RakSAMP.
+- Mantidas as correções de fila multi-servidor, persistência ao fechar o launcher e Cloud Discloud v0.5.2.
 
-SHA-256: 337e466a2fdabe6b7d2dae140837c19c7ce29698d0e685cfd0e21568f37a2571
+SHA-256: 7980d8fed85e302c5186c919a5634d9401824c3f9549857ee0b5a2783eb108a5
