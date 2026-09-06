@@ -3,6 +3,19 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.6.0",
+      "date": "2026-09-06",
+      "changes": [
+        "Clicar no × agora esconde o Horizonte AFK na bandeja do sistema e mantém as sessões AFK ativas.",
+        "Adicionado ícone oficial do Horizonte AFK à integração da janela e bandeja com o Windows.",
+        "Multi-servidor redesenhado para manter apenas um Horizonte AFK visível ao usuário.",
+        "Sessões extras continuam isoladas internamente, mas ficam ocultas da barra de tarefas e do Alt+Tab.",
+        "Status, tempo, login, 2FA, listas e dialogs das sessões múltiplas são centralizados no painel principal.",
+        "Adicionados controles para desconectar servidores individualmente ou encerrar todas as sessões múltiplas.",
+        "Tela cheia/F11, updater SHA-256 e núcleo de conexão/dialogs preservados."
+      ]
+    },
+    {
       "version": "1.5.0",
       "date": "2026-09-06",
       "changes": [

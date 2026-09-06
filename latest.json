@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.5.0",
-  "published_at": "2026-09-06T03:47:00.000Z",
+  "version": "1.6.0",
+  "published_at": "2026-09-06T04:12:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.5.0/Horizonte_AFK.exe",
-  "sha256": "037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440",
-  "size_bytes": 2840576,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.0/Horizonte_AFK.exe",
+  "sha256": "12f80c8212576bacc3bb4a602462b7da0e8f9630b0e0b00157bfdf23a7a8299b",
+  "size_bytes": 2881536,
   "encoding": "none",
-  "notes": "Fechar agora minimiza e mantém o AFK ativo; adicionados saída completa, tela cheia/F11 e modo multi-servidor com sessões isoladas.",
+  "notes": "Fechar agora envia o app para a bandeja; ícone do Horizonte integrado ao Windows e multi-servidor centralizado em um único painel visível.",
   "min_supported_version": "1.2.0"
 }
