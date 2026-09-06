@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.20 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.20-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://productionresultssa16.blob.core.windows.net/actions-results/66acd7ae-686e-4577-8475-ab7cbe035ec9/workflow-job-run-7e1bf384-ec26-580c-ba7e-5ebbee7e2e70/artifacts/35c12973c8b588f3358a5339008f40bd058eb08ca107acd33dc2a28edb3c7ca0.zip?rscd=attachment%3B+filename%3D%22Horizonte-AFK-1.6.20-beta.1.zip%22&rsct=application%2Fzip&se=2026-09-06T19%3A42%3A53Z&sig=99vAh%2FzOV6YdhCoEEhbW92uY8PM4Oph83tTr%2FXZmX08%3D&ske=2026-09-06T20%3A48%3A47Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-09-06T16%3A48%3A47Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-09-06T19%3A32%3A48Z&sv=2025-11-05'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK_1.6.20-beta.1.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5815808'
+          test "$SHA" = 'c2847a58819539e0e09a9ef2c7e864ae9b294a0cd42d26de9882e4bb720fd1d2'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "EXE=$EXE" >> "$GITHUB_ENV"
+          echo "EXE SHA256=$SHA SIZE=$SIZE"
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view 'v1.6.20-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.20-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.20-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.20-beta.1' --notes 'Correção de lifecycle local. Sessões RakSAMP locais agora ficam vinculadas ao processo que as criou e são encerradas pelo Windows caso o launcher/host termine. Ao iniciar, o launcher remove processos locais órfãos de versões anteriores somente dentro da pasta do Horizonte AFK. Sair completamente encerra todas as sessões locais e filhos multi-servidor; sessões 24/7 legítimas na Discloud não são afetadas.' --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.20-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.20-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige processos locais órfãos: local morre junto com o launcher/host e restos antigos são limpos na próxima abertura. Cloud 24/7 continua independente.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json Horizonte_AFK.exe
+          git commit -m 'release: v1.6.20-beta.1' || true
+          git push
