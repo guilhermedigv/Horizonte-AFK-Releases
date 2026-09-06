@@ -1,0 +1,100 @@
+name: Build final Horizonte AFK 1.5.0
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/build-1.5.0-final.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache: false
+
+      - name: Preparar fontes e payload validados
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/payload
+          cp build-src/v1.5.0/main.go build/main.go
+          cp build-src/v1.5.0/features.go build/features.go
+          cp build-src/v1.5.0/go.mod build/go.mod
+          test "$(git hash-object build/main.go)" = "0bb5cfba9c30321c9dae35e78469d969f6c21a64"
+          test "$(git hash-object build/features.go)" = "1bf6071e57708995395b051c24d9a67df2482bed"
+          test "$(git hash-object build/go.mod)" = "76ce0ae64063d05cc6dac43557ffaa9de00d17f5"
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          old = Path('Horizonte_AFK.exe').read_bytes()
+          payload = Path('build/payload')
+          def git_blob_sha(data):
+              return hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
+          sig=b'\xef\xbb\xbf# Horizonte AFK Launcher'; end=b'$window.ShowDialog() | Out-Null'
+          ps=None; pos=0
+          while True:
+              i=old.find(sig,pos)
+              if i<0: break
+              j=old.find(end,i)
+              if j>=0:
+                  base=j+len(end)
+                  for extra in range(9):
+                      c=old[i:base+extra]
+                      if git_blob_sha(c)=='48b50562313f13c807d269575e85a93e21fb4a0c': ps=c; break
+              if ps is not None: break
+              pos=i+1
+          if ps is None: raise SystemExit('payload PowerShell validado não encontrado')
+          (payload/'Horizonte-AFK.ps1').write_bytes(ps)
+          def exact(sig,size,sha):
+              pos=0
+              while True:
+                  i=old.find(sig,pos)
+                  if i<0: break
+                  c=old[i:i+size]
+                  if len(c)==size and hashlib.sha256(c).hexdigest()==sha: return c
+                  pos=i+1
+              raise SystemExit('recurso validado não encontrado: '+sha)
+          (payload/'RakSAMPClient.exe').write_bytes(exact(b'MZ',409088,'b63de2af9dff1fbea4f79897054576788c57427637385ab92397999cdac9320c'))
+          (payload/'hero_bg.jpg').write_bytes(exact(b'\xff\xd8\xff',57574,'1180813a64ac04474c6f4f76df4f7f42648e6b523a2aabaea76b5550597b4d6e'))
+          (payload/'hz_icon.png').write_bytes(exact(b'\x89PNG\r\n\x1a\n',32380,'5f96d07d9af05c40f1f4700136438311b2b9204e6e6a0e4475e4441111fe317a'))
+          PY
+
+      - name: Compilar e validar binário final
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          Push-Location build
+          try {
+            $env:CGO_ENABLED='0'
+            go build -trimpath -ldflags '-s -w -H=windowsgui' -o Horizonte_AFK.exe .
+            if($LASTEXITCODE-ne0){throw 'Compilação falhou'}
+            $h=(Get-FileHash Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+            $s=(Get-Item Horizonte_AFK.exe).Length
+            if($h-ne'847df6749ed57971c631a05b26428ccb4e2adfa185369799edd5c02ea8d64b07'){throw ('Hash divergente: '+$h)}
+            if($s-ne2841088){throw ('Tamanho divergente: '+$s)}
+          } finally { Pop-Location }
+
+      - name: Promover EXE validado
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          Copy-Item build/Horizonte_AFK.exe Horizonte_AFK.exe -Force
+          @{
+            version='1.5.0';
+            sha256='847df6749ed57971c631a05b26428ccb4e2adfa185369799edd5c02ea8d64b07';
+            size_bytes=2841088;
+            validated_against='private-ci-and-public-rebuild'
+          } | ConvertTo-Json | Set-Content build-result-1.5.0.json -Encoding utf8
+          git config user.name 'Horizonte AFK Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe build-result-1.5.0.json
+          git commit -m 'Adiciona executável validado do Horizonte AFK 1.5.0'
+          git push
