@@ -1,13 +1,10 @@
-# Horizonte AFK 1.6.4-beta.2
+# Horizonte AFK 1.6.5-hotfix
 
-Beta do modo Cloud 24/7 direto pelo aplicativo.
+Correção emergencial de recuperação.
 
-- Remove o redirecionamento para painel web.
-- O botão 24/7 ativa a conexão remota diretamente na Discloud.
-- Login, senha, 2FA, listas e escolha de spawn continuam aparecendo dentro do Horizonte AFK.
-- Depois de conectado, a sessão continua na Discloud mesmo com o EXE ou PC fechado.
-- Ao abrir o EXE novamente, a sessão Cloud é recuperada no painel.
-- Chave administrativa do backend não é embutida no executável; cada instalação usa credencial própria protegida pelo Windows.
-- Base local da v1.6.3, bandeja, tela cheia, multi-servidor e updater preservados.
+- Remove temporariamente a integração Cloud 24/7 que causou falha de abertura em alguns builds beta.
+- Restaura integralmente a base comprovadamente estável da v1.6.3.
+- Mantém updater, bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA e dialogs locais.
+- O modo Cloud será reintegrado depois em uma beta separada, sem afetar a versão estável.
 
-SHA-256: `52f37ec764640cfa53f27de890f0100996610fbb58f1b14b38bccf87bca250ae`
+SHA-256: `4f9f7424021ed824413f637d21a9561a1b34de6be29ba36b5ef877a377c2d862`

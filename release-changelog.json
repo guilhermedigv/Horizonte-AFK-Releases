@@ -1,7 +1,17 @@
 {
   "product": "Horizonte AFK",
-  "channel": "beta",
+  "channel": "stable",
   "versions": [
+    {
+      "version": "1.6.5-hotfix",
+      "date": "2026-09-06",
+      "changes": [
+        "Correção emergencial para o caso em que a v1.6.4-beta.2 podia iniciar sem exibir a interface.",
+        "Base visual e núcleo restaurados para o comportamento comprovadamente estável da v1.6.3.",
+        "Mantidos updater, bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA e dialogs locais.",
+        "Integração Cloud 24/7 removida temporariamente da stable para ser revalidada em beta separada."
+      ]
+    },
     {
       "version": "1.6.4-beta.2",
       "date": "2026-09-06",
