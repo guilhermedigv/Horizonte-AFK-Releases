@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.9-beta.1",
-  "published_at": "2026-09-06T15:46:04.984810Z",
+  "version": "1.6.10-beta.1",
+  "published_at": "2026-09-06T15:57:21.894403Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.9-beta.1/Horizonte_AFK.exe",
-  "sha256": "337e466a2fdabe6b7d2dae140837c19c7ce29698d0e685cfd0e21568f37a2571",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.10-beta.1/Horizonte_AFK.exe",
+  "sha256": "7980d8fed85e302c5186c919a5634d9401824c3f9549857ee0b5a2783eb108a5",
   "size_bytes": 2805248,
   "encoding": "none",
-  "notes": "Hotfix de conexão local: falhas do Centro de Contas não bloqueiam mais o RakSAMP; erros reais passam a aparecer no painel e a versão evita regressão automática entre betas 1.6.8.",
+  "notes": "Correção do modo 24/7 e Centro de Contas: removido conflito com a variável Host do PowerShell e restaurada persistência/listagem das contas. Build validada.",
   "min_supported_version": "1.2.0"
 }
