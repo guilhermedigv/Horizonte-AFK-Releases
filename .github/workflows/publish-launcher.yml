@@ -1,11 +1,8 @@
-name: Publicar Horizonte AFK
+name: Publicar Horizonte AFK beta3 persistente
 on:
   push:
     branches: [main]
     paths:
-      - 'Horizonte_AFK.exe'
-      - 'release-candidate.json'
-      - 'scripts/publish-release.py'
       - '.github/workflows/publish-launcher.yml'
   workflow_dispatch:
 permissions:
@@ -18,6 +15,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Baixar artefato validado
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-998c-820e-8b64-4302fdcb783c/raw?se=2026-09-06T09%3A34%3A09Z&sp=r&sv=2026-02-06&sr=b&scid=f364e27e-cfd8-5455-bc5a-c8811f4ec910&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A17%3A03Z&ske=2026-09-06T22%3A17%3A03Z&sks=b&skv=2026-02-06&sig=OVFHZ3C%2Be1KKMiHaHmC%2Bn9yfVyCWZKuaT2oTsgoUN9E%3D'
+        run: |
+          curl -fL --retry 3 --retry-delay 2 "$ARTIFACT_URL" -o /tmp/hz-beta3.zip
+          unzip -o /tmp/hz-beta3.zip Horizonte_AFK.exe -d .
+      - name: Validar executável e preparar metadados
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,datetime
+          root=pathlib.Path('.')
+          exe=root/'Horizonte_AFK.exe'
+          data=exe.read_bytes()
+          expected='f74748e248ca1b3c06d53ec5e34eb4df94917f8004fb2e1340e5cf2300ad2742'
+          assert data[:2]==b'MZ'
+          assert len(data)==2984960, len(data)
+          assert hashlib.sha256(data).hexdigest()==expected
+          meta={
+            'product':'Horizonte AFK','channel':'beta','version':'1.6.7-beta.3',
+            'published_at':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),
+            'available':True,'mandatory':False,
+            'download_url':'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.7-beta.3/Horizonte_AFK.exe',
+            'sha256':expected,'size_bytes':2984960,'encoding':'none',
+            'notes':'Corrige a persistência 24/7: fechar, sair ou atualizar o EXE apenas desacopla a interface; a sessão Cloud só para por ação explícita.',
+            'min_supported_version':'1.2.0'
+          }
+          (root/'release-candidate.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          changes=json.loads((root/'release-changelog.json').read_text(encoding='utf-8-sig'))
+          versions=[v for v in changes.get('versions',[]) if v.get('version')!='1.6.7-beta.3']
+          versions.insert(0,{
+            'version':'1.6.7-beta.3','date':'2026-09-06','changes':[
+              'Fechar o Horizonte AFK ou usar Sair completamente não encerra mais sessões 24/7 na Discloud.',
+              'Atualizações/reinício do launcher apenas desacoplam a interface da sessão Cloud.',
+              'Uma sessão Cloud só é encerrada quando o usuário usa DESCONECTAR/ENCERRAR explicitamente no Centro de Contas.',
+              'O cliente deixou de usar DELETE genérico para parar contas e passa a usar o endpoint explícito /stop.',
+              'Exige Cloud v0.5.1 com explicit_stop_v2 e detach_safe para ativar novas conexões.'
+            ]
+          })
+          changes['channel']='beta'; changes['versions']=versions
+          (root/'release-changelog.json').write_text(json.dumps(changes,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          (root/'RELEASE_NOTES.md').write_text('''# Horizonte AFK 1.6.7-beta.3\n\nPersistência real do modo 24/7.\n\n- Fechar o EXE não derruba contas na Discloud.\n- Sair completamente e atualizar o launcher também apenas desacoplam a interface.\n- Somente DESCONECTAR/ENCERRAR no Centro de Contas envia uma parada explícita.\n- Requer Cloud v0.5.1 para garantir a separação entre detach e stop.\n\nSHA-256: f74748e248ca1b3c06d53ec5e34eb4df94917f8004fb2e1340e5cf2300ad2742\n''',encoding='utf-8')
+          (root/'SHA256SUMS.txt').write_text(expected+'  Horizonte_AFK.exe\n',encoding='utf-8')
+          PY
       - name: Publicar e conferir o executável oficial
         env:
           GH_TOKEN: ${{ github.token }}
@@ -27,24 +67,24 @@ jobs:
           python3 - <<'PY'
           import hashlib,json,time,urllib.request
           m=json.load(open('release-candidate.json'))
-          for attempt in range(6):
+          for attempt in range(8):
               try:
                   with urllib.request.urlopen(m['download_url'],timeout=60) as r: data=r.read()
                   assert len(data)==m['size_bytes']
                   assert hashlib.sha256(data).hexdigest()==m['sha256']
                   break
               except Exception:
-                  if attempt==5: raise
+                  if attempt==7: raise
                   time.sleep(5)
           PY
-      - name: Ativar canal estável após verificar a release
+      - name: Ativar beta3 no updater e salvar artefato validado
         run: |
           cp release-candidate.json latest.json
           cp release-changelog.json changelog.json
           git config user.name 'Horizonte AFK Updater'
           git config user.email 'actions@users.noreply.github.com'
-          git add latest.json changelog.json
+          git add Horizonte_AFK.exe release-candidate.json latest.json release-changelog.json changelog.json RELEASE_NOTES.md SHA256SUMS.txt
           if ! git diff --cached --quiet; then
-            git commit -m 'Ativa atualização validada após verificar download oficial'
+            git commit -m 'Publica Horizonte AFK 1.6.7-beta.3 [skip ci]'
             git push
           fi
