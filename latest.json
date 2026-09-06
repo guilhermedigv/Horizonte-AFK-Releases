@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.12-beta.1",
-  "published_at": "2026-09-06T16:27:45.479486Z",
+  "version": "1.6.13-beta.1",
+  "published_at": "2026-09-06T16:45:07.926913Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.12-beta.1/Horizonte_AFK.exe",
-  "sha256": "1ca0d2855f89beca10eba7ca8fbba3e976364a93647996102d8ca1525a06508f",
-  "size_bytes": 2822144,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.13-beta.1/Horizonte_AFK.exe",
+  "sha256": "649a699cd7889ac1eeaf551ba2fcc763696321f403ca68885b80532b7ace8f0e",
+  "size_bytes": 2825216,
   "encoding": "none",
-  "notes": "Correção do Centro de Contas e ativação das abas Conexão/Configurações com chat seguro do servidor. Build validada.",
+  "notes": "Chat local/cloud corrigido e dialogs de comandos agora ficam acessíveis em primeiro plano. Build validada.",
   "min_supported_version": "1.2.0"
 }
