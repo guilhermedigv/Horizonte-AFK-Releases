@@ -1,0 +1,40 @@
+name: Exportar runtime completo beta3
+on:
+  push:
+    branches: [debug-beta3-extract]
+    paths:
+      - '.github/workflows/export-beta3-full-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extrair runtime completo
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:HZ_TEST_MODE='1'
+          $p=Start-Process -FilePath (Join-Path $PWD 'Horizonte_AFK.exe') -PassThru
+          $runtime=$null
+          for($i=0;$i-lt90;$i++){
+            Start-Sleep -Milliseconds 500
+            $candidate=Join-Path $env:LOCALAPPDATA 'HorizonteAFK\runtime-v9-rpc-dialogs'
+            if((Test-Path $candidate) -and (Test-Path (Join-Path $candidate 'Horizonte-AFK.ps1'))){$runtime=$candidate;break}
+          }
+          if(-not $runtime){throw 'Runtime não encontrado'}
+          New-Item -ItemType Directory -Path extracted -Force|Out-Null
+          foreach($name in @('Horizonte-AFK.ps1','RakSAMPClient.exe','hero_bg.jpg','hz_icon.png','HorizonteAFK.Host.exe')){
+            $src=Join-Path $runtime $name
+            if(Test-Path $src){Copy-Item -LiteralPath $src -Destination (Join-Path $PWD 'extracted') -Force}
+          }
+          try{if(-not $p.HasExited){Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue}}catch{}
+          Get-ChildItem extracted | Select-Object Name,Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: horizonte-beta3-full-runtime
+          path: extracted
+          if-no-files-found: error
+          retention-days: 1
