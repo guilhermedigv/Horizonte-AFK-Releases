@@ -9,6 +9,6 @@
   "sha256": "81d6bc3ea2f8fa05adb6c32cdcd62d95cafe9436ee21399017d134b793730ac6",
   "size_bytes": 2805248,
   "encoding": "none",
-  "notes": "Correção do modo 24/7, Centro de Contas e fluxo multi-servidor sequencial.",
+  "notes": "Correção do modo 24/7, Centro de Contas e multi-servidor sequencial; compatível com Cloud v0.5.2.",
   "min_supported_version": "1.2.0"
 }
