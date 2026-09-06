@@ -23,10 +23,10 @@ jobs:
           cache: false
 
       - name: Reconstruir fontes e extrair payload validado
-        shell: pwsh
+        shell: bash
         run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path build/payload -Force | Out-Null
+          set -euo pipefail
+          mkdir -p build/payload
           python - <<'PY'
           from pathlib import Path
           import hashlib
@@ -54,7 +54,6 @@ jobs:
           old = Path('Horizonte_AFK.exe').read_bytes()
           payload = out/'payload'
 
-          # Extrai o PowerShell original exatamente como foi embutido na linha 1.4.x.
           sig = b'\xef\xbb\xbf# Horizonte AFK Launcher'
           end_marker = b'$window.ShowDialog() | Out-Null'
           expected_ps_git = '48b50562313f13c807d269575e85a93e21fb4a0c'
