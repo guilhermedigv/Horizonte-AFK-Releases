@@ -17,13 +17,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Reconstruir EXE privado validado
+      - name: Baixar EXE privado validado
         shell: bash
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-57ec-820e-9858-ce8cd3543168/raw?se=2026-09-06T03%3A50%3A49Z&sp=r&sv=2026-02-06&sr=b&scid=70abe0de-bcce-5dac-99aa-f2b11032ed50&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A16%3A49Z&ske=2026-09-06T22%3A16%3A49Z&sks=b&skv=2026-02-06&sig=Lzgql142qGrg8mslB7KHAGfUViEJT2OASmpvi9x8HHI%3D'
         run: |
           set -euo pipefail
-          cat staging/v1.5.0/part-*.bin > /tmp/Horizonte_AFK.exe.xz
-          echo '24c9487ec81aedc6715f55c772cbceb93e87ae1ebf3be97ad2d61cf05035ba65  /tmp/Horizonte_AFK.exe.xz' | sha256sum -c -
-          xz -dc /tmp/Horizonte_AFK.exe.xz > Horizonte_AFK.exe
+          curl -fL --retry 3 --retry-delay 2 "$ARTIFACT_URL" -o /tmp/Horizonte-AFK-1.5.0.zip
+          echo 'fa1f31488ebd82db9047a1cca5046d35468a41eab089ce99d1cd2119a95a87d5  /tmp/Horizonte-AFK-1.5.0.zip' | sha256sum -c -
+          rm -rf /tmp/hz150 && mkdir -p /tmp/hz150
+          unzip -q /tmp/Horizonte-AFK-1.5.0.zip -d /tmp/hz150
+          cp /tmp/hz150/Horizonte_AFK.exe ./Horizonte_AFK.exe
           test "$(stat -c%s Horizonte_AFK.exe)" = '2840576'
           echo '037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440  Horizonte_AFK.exe' | sha256sum -c -
           test "$(dd if=Horizonte_AFK.exe bs=1 count=2 status=none)" = 'MZ'
@@ -52,15 +56,14 @@ jobs:
           PY
           printf '%s  %s\n' '037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440' 'Horizonte_AFK.exe' > SHA256SUMS.txt
 
-      - name: Promover artefato e limpar staging
+      - name: Promover artefato validado
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'Horizonte AFK Release Builder'
           git config user.email 'actions@users.noreply.github.com'
-          git rm -r staging/v1.5.0
+          git rm staging/v1.5.0/READY
           git rm .github/workflows/assemble-1.5.0-release.yml
           git add Horizonte_AFK.exe release-candidate.json SHA256SUMS.txt
           git commit -m 'Promove executável validado do Horizonte AFK 1.5.0'
-          git pull --rebase origin main
           git push origin main
