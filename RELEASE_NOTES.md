@@ -1,12 +1,12 @@
-# Horizonte AFK 1.6.6-beta.2
+# Horizonte AFK 1.6.6-beta.3
 
-Diagnóstico melhorado do modo Cloud 24/7.
+Correção do fluxo inicial do modo Cloud 24/7.
 
-- O painel de log do EXE mostra o console/chat real do RakSAMP executado na Discloud.
-- Mensagens do servidor, [CMSG], conexão, spawn, fechamento e bloqueios ficam visíveis para diagnóstico.
-- Com o backend Cloud 0.4.1, o EXE também mostra o IP público estimado da saída HTTP da Discloud.
-- O IP é apenas uma estimativa de egress; para whitelist definitiva, confirme o IP visto pelo próprio servidor SA-MP.
-- A versão interna do updater agora é 1.6.6-beta.2, alinhada à release.
-- O fail-safe continua ativo: falha na camada de diagnóstico não deve quebrar o modo local nem impedir a janela de abrir.
+- Impede o RakSAMP da Discloud de tentar spawnar antes do login/2FA.
+- Mantém o processamento dos scripts/RPCs para que os dialogs reais do servidor sejam exibidos no próprio Horizonte AFK.
+- Mantém o console/chat puro da nuvem e o diagnóstico de IP.
+- Mantém o modo local e o fail-safe intactos.
+
+Esta é uma beta de validação do handshake: primeiro confirme que os dialogs de login/2FA aparecem sem o servidor bloquear a conexão. A finalização automática do spawn será ajustada depois de validar a sequência real do servidor.
 
 SHA-256: 
