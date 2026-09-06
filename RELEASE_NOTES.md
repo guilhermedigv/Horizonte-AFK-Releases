@@ -1,10 +1,13 @@
-# Horizonte AFK 1.6.11-beta.1
+# Horizonte AFK 1.6.12-beta.1
 
-Correção visual dos dialogs do servidor.
+Correção do Centro de Contas e novas áreas funcionais.
 
-- Removidos dos dialogs os códigos de cor do SA-MP, como {008BFF}, {FFFFFF} e {27AE60}, que estavam aparecendo como texto.
-- Título, corpo, opções de lista e botões dos dialogs agora são exibidos limpos, sem marcadores de formatação do servidor.
-- As respostas enviadas ao servidor continuam usando os valores originais, evitando quebrar login, spawn e seleções.
-- Mantidas as correções do modo 24/7, Centro de Contas e multi-servidor das versões anteriores.
+- Corrigido o Centro de Contas quando dados antigos vinham como System.Object[]: a leitura agora normaliza arrays e valores de servidor/porta antes de exibir os perfis.
+- A persistência de contas e regras passa a gravar coleções JSON de forma consistente, inclusive quando existe apenas uma conta.
+- A aba CONEXÃO agora abre um painel de chat: texto normal envia chat e /comando envia comando ao servidor pelo mesmo caminho do RakSAMP.
+- Por segurança, comandos internos do RakSAMP iniciados por ! são bloqueados, há limite de tamanho e intervalo mínimo entre envios.
+- A aba CONFIGURAÇÕES agora permite controlar atualizações automáticas, abertura maximizada e modo privado do painel.
+- Dialogs, modo 24/7, multi-servidor, fechamento na bandeja e limpeza dos códigos de cor permanecem preservados.
+- Chat no modo 24/7 requer Horizonte AFK Cloud v0.5.3 ou superior; chat local funciona diretamente nesta versão.
 
-SHA-256: 957f866334a4248ed8043aae63fffe2a048d632ae5bba72dd0f40d7e377607ab
+SHA-256: 1ca0d2855f89beca10eba7ca8fbba3e976364a93647996102d8ca1525a06508f

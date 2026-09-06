@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.11-beta.1",
-  "published_at": "2026-09-06T16:06:04.355675Z",
+  "version": "1.6.12-beta.1",
+  "published_at": "2026-09-06T16:27:45.479486Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.11-beta.1/Horizonte_AFK.exe",
-  "sha256": "957f866334a4248ed8043aae63fffe2a048d632ae5bba72dd0f40d7e377607ab",
-  "size_bytes": 2805760,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.12-beta.1/Horizonte_AFK.exe",
+  "sha256": "1ca0d2855f89beca10eba7ca8fbba3e976364a93647996102d8ca1525a06508f",
+  "size_bytes": 2822144,
   "encoding": "none",
-  "notes": "Correção visual dos dialogs: códigos de cor/formatação do SA-MP não aparecem mais como texto. Build validada.",
+  "notes": "Correção do Centro de Contas e ativação das abas Conexão/Configurações com chat seguro do servidor.",
   "min_supported_version": "1.2.0"
 }
