@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-e2e8-820e-83ce-ab70ca53db1e/raw?se=2026-09-06T18%3A17%3A38Z&sp=r&sv=2026-02-06&sr=b&scid=6db2651f-4306-5607-abec-f282c4a9629f&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A11%3A11Z&ske=2026-09-06T22%3A11%3A11Z&sks=b&skv=2026-02-06&sig=I1p9yVc4ahjjlaxqWKFZLQ/o6o5vPsNCekzMUUjqGJM%3D' -o build.zip
+          curl -fL 'https://productionresultssa10.blob.core.windows.net/actions-results/006b71ec-008c-4a52-8b82-f6a7f36ab4a1/workflow-job-run-fa2c185a-26a6-5fde-b61c-90b5d9a99eb8/artifacts/b48260f1c0eef9f2d8e0d5547db450aacbe4d2253468a644dc79835ae8445dbb.zip?rscd=attachment%3B+filename%3D%22Horizonte-AFK-1.6.17-beta.1.zip%22&rsct=application%2Fzip&se=2026-09-06T18%3A34%3A47Z&sig=TLijoksKt8ZxRD5naoQLGmTVBQ%2Bat6T9DU9GAGOGLZ0%3D&ske=2026-09-06T20%3A57%3A04Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-09-06T16%3A57%3A04Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-09-06T18%3A24%3A42Z&sv=2025-11-05' -o build.zip
           unzip -j build.zip 'Horizonte_AFK_1.6.17-beta.1.exe' -d out
           mv out/Horizonte_AFK_1.6.17-beta.1.exe Horizonte_AFK.exe
           echo '0f7c0120650c6ae4c96b4a10d1bb41080e0c648ed6efeb284ad73a31a10ae578  Horizonte_AFK.exe' | sha256sum -c -
