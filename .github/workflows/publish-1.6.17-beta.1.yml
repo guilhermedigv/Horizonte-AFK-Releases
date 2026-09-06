@@ -1,0 +1,61 @@
+name: Publicar Horizonte AFK 1.6.17 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.17-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-e2e8-820e-83ce-ab70ca53db1e/raw?se=2026-09-06T18%3A17%3A38Z&sp=r&sv=2026-02-06&sr=b&scid=6db2651f-4306-5607-abec-f282c4a9629f&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T22%3A11%3A11Z&ske=2026-09-06T22%3A11%3A11Z&sks=b&skv=2026-02-06&sig=I1p9yVc4ahjjlaxqWKFZLQ/o6o5vPsNCekzMUUjqGJM%3D' -o build.zip
+          unzip -j build.zip 'Horizonte_AFK_1.6.17-beta.1.exe' -d out
+          mv out/Horizonte_AFK_1.6.17-beta.1.exe Horizonte_AFK.exe
+          echo '0f7c0120650c6ae4c96b4a10d1bb41080e0c648ed6efeb284ad73a31a10ae578  Horizonte_AFK.exe' | sha256sum -c -
+          test "$(stat -c %s Horizonte_AFK.exe)" = '5796864'
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='v1.6.17-beta.1'
+          NOTES='Correção do erro Não foi possível preparar a conexão após a atualização: o launcher usa um diretório de runtime novo para não colidir com RakSAMPClient.exe/lua51.dll ainda travados pela versão anterior. Mantém nick estrito e chat 24/7 separado.'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Horizonte_AFK.exe --clobber
+          else
+            gh release create "$TAG" Horizonte_AFK.exe --title 'Horizonte AFK 1.6.17-beta.1' --notes "$NOTES" --prerelease
+          fi
+          python3 - <<'PY'
+          import json, datetime
+          p='latest.json'
+          with open(p,'r',encoding='utf-8') as f: d=json.load(f)
+          d.update({
+            'product':'Horizonte AFK',
+            'channel':'beta',
+            'version':'1.6.17-beta.1',
+            'published_at':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),
+            'available':True,
+            'mandatory':False,
+            'download_url':'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.17-beta.1/Horizonte_AFK.exe',
+            'sha256':'0f7c0120650c6ae4c96b4a10d1bb41080e0c648ed6efeb284ad73a31a10ae578',
+            'size_bytes':5796864,
+            'encoding':'none',
+            'notes':'Correção do runtime travado após update: a 1.6.17 usa runtime isolado novo. Mantém nick estrito e chat 24/7 separado.',
+            'min_supported_version':'1.2.0'
+          })
+          d.pop('parts',None); d.pop('part_encoding',None)
+          with open(p,'w',encoding='utf-8') as f: json.dump(d,f,ensure_ascii=False,indent=2); f.write('\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: apontar updater para 1.6.17-beta.1'
+          git push
