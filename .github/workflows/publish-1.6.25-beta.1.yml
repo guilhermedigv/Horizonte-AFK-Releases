@@ -1,0 +1,64 @@
+name: Publicar Horizonte AFK 1.6.25 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.25-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-f93c-820e-ac29-0a73e6742890/raw?se=2026-09-06T22%3A50%3A43Z&sp=r&sv=2026-02-06&sr=b&scid=b3274271-8031-51c6-baa7-52056a841021&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T14%3A22%3A43Z&ske=2026-09-07T14%3A22%3A43Z&sks=b&skv=2026-02-06&sig=F87ireZ2TEhpG7f6fvi0b4Jr6%2BiNZPQQKhEXrLrBtYw%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact
+          mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5830656'
+          test "$SHA" = '13c69a8c56a91a0ae4f7b7b9bfad8732203b85d6c58a36d9a428dede05f8d7c2'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "EXE SHA256=$SHA SIZE=$SIZE"
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a causa raiz da interação com dialogs na v1.6.24. O RakSAMP recebia um stdin privado do launcher, mas reabria CONIN$ durante a inicialização e desconectava o pipe usado pelo comando !hzdialog; por isso Selecionar aparecia no painel, mas a resposta nunca chegava ao núcleo. A v1.6.25 preserva o stdin herdado e mantém a ponte de dialogs por evento. Também reduz polling permanente: monitor local de 80ms para 250ms, Centro de Contas de 350ms para 700ms, multi-servidor de 220ms para 350ms e IPC de filhos de 100ms para 250ms, diminuindo uso de CPU e I/O sem alterar o layout, contas, Cloud 24/7 ou updater.'
+          if gh release view 'v1.6.25-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.25-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.25-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.25-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.25-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.25-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige a interação com dialogs preservando o stdin privado do RakSAMP; a v1.6.24 reabria CONIN$ e desconectava o pipe usado por !hzdialog. Também reduz polling permanente de UI, contas, multi-servidor e IPC para diminuir uso de CPU e I/O.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json Horizonte_AFK.exe
+          git commit -m 'release: v1.6.25-beta.1' || true
+          git push
