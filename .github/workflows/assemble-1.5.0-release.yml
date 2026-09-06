@@ -1,0 +1,66 @@
+name: Montar e publicar Horizonte AFK 1.5.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'staging/v1.5.0/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruir EXE privado validado
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat staging/v1.5.0/part-*.bin > /tmp/Horizonte_AFK.exe.xz
+          echo '24c9487ec81aedc6715f55c772cbceb93e87ae1ebf3be97ad2d61cf05035ba65  /tmp/Horizonte_AFK.exe.xz' | sha256sum -c -
+          xz -dc /tmp/Horizonte_AFK.exe.xz > Horizonte_AFK.exe
+          test "$(stat -c%s Horizonte_AFK.exe)" = '2840576'
+          echo '037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440  Horizonte_AFK.exe' | sha256sum -c -
+          test "$(dd if=Horizonte_AFK.exe bs=1 count=2 status=none)" = 'MZ'
+
+      - name: Preparar metadados da release 1.5.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, datetime
+          meta = {
+            'product': 'Horizonte AFK',
+            'channel': 'stable',
+            'version': '1.5.0',
+            'published_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
+            'available': True,
+            'mandatory': False,
+            'download_url': 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.5.0/Horizonte_AFK.exe',
+            'sha256': '037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440',
+            'size_bytes': 2840576,
+            'encoding': 'none',
+            'notes': 'Fechar agora minimiza e mantém o AFK ativo; adicionados saída completa, tela cheia/F11 e modo multi-servidor com sessões isoladas.',
+            'min_supported_version': '1.2.0'
+          }
+          open('release-candidate.json','w',encoding='utf-8').write(json.dumps(meta,ensure_ascii=False,indent=2)+'\n')
+          PY
+          printf '%s  %s\n' '037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440' 'Horizonte_AFK.exe' > SHA256SUMS.txt
+
+      - name: Promover artefato e limpar staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Horizonte AFK Release Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm -r staging/v1.5.0
+          git rm .github/workflows/assemble-1.5.0-release.yml
+          git add Horizonte_AFK.exe release-candidate.json SHA256SUMS.txt
+          git commit -m 'Promove executável validado do Horizonte AFK 1.5.0'
+          git pull --rebase origin main
+          git push origin main
