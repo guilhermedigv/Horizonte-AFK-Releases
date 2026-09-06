@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.14-beta.1",
-  "published_at": "2026-09-06T16:57:31.950964Z",
+  "version": "1.6.15-beta.1",
+  "published_at": "2026-09-06T17:15:04.824611Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.14-beta.1/Horizonte_AFK.exe",
-  "sha256": "a6474a1873c269c595a649dc33c9f9ea9985204a47061f3ef8d22d93f8d6023e",
-  "size_bytes": 2825728,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.15-beta.1/Horizonte_AFK.exe",
+  "sha256": "943090e36bc9dfac27064642b0b49e486f0161de21b44c5a9bc1ef9d51f51555",
+  "size_bytes": 2829824,
   "encoding": "none",
-  "notes": "Correção do ENTER na aba Conexão e Chat sem alterar o envio pelo botão. Build validada e pronta para atualização automática.",
+  "notes": "Correção de identidade do nick no 24/7: sessões antigas de outra conta não são mais anexadas silenciosamente. Build validada e pronta para atualização automática.",
   "min_supported_version": "1.2.0"
 }

@@ -3,6 +3,18 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.15-beta.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigida a restauração 24/7 que podia anexar a primeira sessão da Discloud mesmo quando ela pertencia a outro nick.",
+        "O launcher agora restaura somente uma sessão cujo nick, servidor e porta correspondam exatamente aos campos atuais.",
+        "Ao conectar na nuvem, o nick digitado é congelado antes da reconciliação de contas e enviado sem ser substituído por perfil antigo.",
+        "Se a Cloud devolver uma sessão existente com outro nick, o launcher cria uma identidade de sessão isolada e tenta novamente, sem assumir a conta errada.",
+        "O status seguro passa a registrar Nick solicitado e Nick enviado para facilitar a conferência sem expor senha ou 2FA.",
+        "Modo local, Centro de Contas, chat, dialogs, multi-servidor e persistência 24/7 foram preservados."
+      ]
+    },
+    {
       "version": "1.6.14-beta.1",
       "date": "2026-09-06",
       "changes": [
