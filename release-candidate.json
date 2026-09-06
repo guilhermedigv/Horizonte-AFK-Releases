@@ -9,6 +9,6 @@
   "sha256": "649a699cd7889ac1eeaf551ba2fcc763696321f403ca68885b80532b7ace8f0e",
   "size_bytes": 2825216,
   "encoding": "none",
-  "notes": "Chat local/cloud corrigido e dialogs de comandos agora ficam acessíveis em primeiro plano.",
+  "notes": "Chat local/cloud corrigido e dialogs de comandos agora ficam acessíveis em primeiro plano. Build validada.",
   "min_supported_version": "1.2.0"
 }
