@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.18-beta.1",
-  "published_at": "2026-09-06T18:41:23.031527Z",
+  "version": "1.6.19-beta.1",
+  "published_at": "2026-09-06T18:59:30Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.18-beta.1/Horizonte_AFK.exe",
-  "sha256": "2bcc8c0eb99c938a4977b5844c8f07a9b6933b9f5c9bad3fc33694c257f070b3",
-  "size_bytes": 5800960,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.19-beta.1/Horizonte_AFK.exe",
+  "sha256": "bde09417f5675f55ff5bc3385ce451c876d3adfaec8e5b3432e618632f95002f",
+  "size_bytes": 5809152,
   "encoding": "none",
-  "notes": "Centro de Contas persistente: sessões Cloud 24/7 são reconciliadas ao abrir o launcher e atualizadas em tempo real a cada 2 segundos.",
+  "notes": "Registro persistente por dispositivo + Centro de Contas durável. Sessões 24/7 antigas visíveis são encerradas uma vez na migração.",
   "min_supported_version": "1.2.0"
 }
