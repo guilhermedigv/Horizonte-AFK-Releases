@@ -1,0 +1,124 @@
+
+}
+`
+	s = replaceRequired(s, "# Window chrome", multiFunctions+"\n# Window chrome")
+
+	s = replaceRequired(s, `# Window chrome
+$TopBar.Add_MouseLeftButtonDown({
+    if ($_.ButtonState -eq [Windows.Input.MouseButtonState]::Pressed) {
+        $window.DragMove()
+    }
+})
+$MinimizeButton.Add_Click({ $window.WindowState = 'Minimized' })
+$CloseButton.Add_Click({ Stop-Client; $window.Close() })
+$window.Add_Closing({
+    try { if ($script:updateTimer) { $script:updateTimer.Stop() } } catch {}
+    if ($script:process -and !$script:process.HasExited) {
+        try { $script:process.Kill() } catch {}
+    }
+    try { if (Test-Path $logPath) { Remove-Item $logPath -Force -ErrorAction SilentlyContinue } } catch {}
+})`, `# Window chrome
+$script:allowExit = $false
+function Toggle-WindowSize {
+    if ($window.WindowState -eq [Windows.WindowState]::Maximized) {
+        $window.WindowState = [Windows.WindowState]::Normal
+        $MaximizeButton.Content = '□'
+        $MaximizeButton.ToolTip = 'Tela cheia'
+    } else {
+        $window.WindowState = [Windows.WindowState]::Maximized
+        $MaximizeButton.Content = '❐'
+        $MaximizeButton.ToolTip = 'Restaurar janela'
+    }
+}
+$TopBar.Add_MouseLeftButtonDown({
+    if ($_.ClickCount -ge 2) { Toggle-WindowSize; return }
+    if ($_.ButtonState -eq [Windows.Input.MouseButtonState]::Pressed) {
+        try { $window.DragMove() } catch {}
+    }
+})
+$MinimizeButton.Add_Click({ $window.WindowState = [Windows.WindowState]::Minimized })
+$MaximizeButton.Add_Click({ Toggle-WindowSize })
+$CloseButton.Add_Click({ $window.WindowState = [Windows.WindowState]::Minimized })
+$ExitButton.Add_Click({
+    $script:allowExit = $true
+    try { Stop-Client } catch {}
+    $window.Close()
+})
+$window.Add_KeyDown({
+    if ($_.Key -eq [Windows.Input.Key]::F11) {
+        Toggle-WindowSize
+        $_.Handled = $true
+    }
+})
+$window.Add_Closing({
+    param($sender,$e)
+    if (!$script:allowExit) {
+        $e.Cancel = $true
+        $window.WindowState = [Windows.WindowState]::Minimized
+        return
+    }
+    try { if ($script:updateTimer) { $script:updateTimer.Stop() } } catch {}
+    if ($script:process -and !$script:process.HasExited) {
+        try { $script:process.Kill() } catch {}
+    }
+    try { if (Test-Path $logPath) { Remove-Item $logPath -Force -ErrorAction SilentlyContinue } } catch {}
+})`)
+
+	s = replaceRequired(s, `$ConnectButton.Add_Click({
+    try { Start-Client }`, `$MultiServerButton.Add_Click({ Start-MultiServerSessions })
+$ConnectButton.Add_Click({
+    try { Start-Client }`)
+
+	s = replaceRequired(s, `[IO.File]::WriteAllText($updateRequestPath, 'update', (New-Object Text.UTF8Encoding($false)))
+        $window.Close()`, `[IO.File]::WriteAllText($updateRequestPath, 'update', (New-Object Text.UTF8Encoding($false)))
+        $script:allowExit = $true
+        $window.Close()`)
+
+	s = replaceRequired(s, `$script:updateTimer = New-Object Windows.Threading.DispatcherTimer
+$script:updateTimer.Interval = [TimeSpan]::FromSeconds(60)
+$script:updateTimer.Add_Tick({ Test-InAppUpdate })
+$script:updateTimer.Start()
+
+$window.ShowDialog() | Out-Null`, `$script:multiAutoStarted = $false
+if ($env:HZ_MULTI_CHILD -eq '1') {
+    $parsedServer = -1
+    if ([int]::TryParse([string]$env:HZ_AUTO_SERVER, [ref]$parsedServer) -and $parsedServer -ge 0 -and $parsedServer -lt 5) {
+        Select-ServerIndex $parsedServer
+        $window.Title = ('Horizonte AFK - Servidor #' + ($parsedServer + 1))
+    }
+    if (![string]::IsNullOrWhiteSpace([string]$env:HZ_AUTO_NICK)) {
+        $NickBox.Text = [string]$env:HZ_AUTO_NICK
+    }
+    $MultiServerButton.IsEnabled = $false
+    $UpdateStatusText.Text = 'Atualizações gerenciadas pelo painel principal'
+    $window.Add_ContentRendered({
+        if (!$script:multiAutoStarted) {
+            $script:multiAutoStarted = $true
+            try { Start-Client }
+            catch {
+                Set-Status 'Não foi possível conectar' 'Verifique a sessão e tente novamente.'
+                Add-SafeActivity 'Falha ao iniciar sessão multi-servidor.'
+            }
+        }
+    })
+} else {
+    $script:updateTimer = New-Object Windows.Threading.DispatcherTimer
+    $script:updateTimer.Interval = [TimeSpan]::FromSeconds(60)
+    $script:updateTimer.Add_Tick({ Test-InAppUpdate })
+    $script:updateTimer.Start()
+}
+
+$window.ShowDialog() | Out-Null
+if ($env:HZ_MULTI_CHILD -eq '1') {
+    try { Remove-Item -LiteralPath $dataRoot -Recurse -Force -ErrorAction SilentlyContinue } catch {}
+}`)
+
+	return []byte(s)
+}
+
+func replaceRequired(s, old, new string) string {
+	if !strings.Contains(s, old) {
+		panic("Horizonte AFK feature patch anchor not found")
+	}
+	return strings.Replace(s, old, new, 1)
+}
