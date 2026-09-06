@@ -65,7 +65,10 @@ jobs:
                 fi
               done
 
-              cat "${PARTS[@]}" | base64 --decode > .build-hz/source.tgz
+              : > .build-hz/source.tgz
+              for PART in "${PARTS[@]}"; do
+                base64 --decode "$PART" >> .build-hz/source.tgz
+              done
             elif [ -n "$CANDIDATE" ]; then
               cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
             else
