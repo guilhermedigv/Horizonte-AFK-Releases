@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.27 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.27-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-5310-820e-97a1-a96fd824fc54/raw?se=2026-09-06T23%3A29%3A30Z&sp=r&sv=2026-02-06&sr=b&scid=8bc7619d-a8cd-5ee0-9fb0-74a145654638&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T21%3A31%3A29Z&ske=2026-09-07T21%3A31%3A29Z&sks=b&skv=2026-02-06&sig=6jM3AkRAYwWQsSyLP%2BDsX9P8n9h7Y/lKqbH1qNpuDDk%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5836288'
+          test "$SHA" = '08cf29dbb630407cea829161a9cbd2dd0d87df3f159b661d4348beff1afada16'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige o loop de senha/login observado na v1.6.26. O launcher agora só considera a resposta concluída depois de aguardar uma transição real do diálogo do servidor, em vez de tratar o ACK local do núcleo como sucesso final. O RakSAMP confirma também a quantidade de bytes recebida sem registrar a senha. Sessões filhas do multi-servidor não executam mais resposta automática concorrente, e uma senha digitada não é aprendida/salva antes de ser aceita. O transporte de texto de dialogs foi ajustado para Windows-1252, preservando caracteres usados no servidor brasileiro. Contas, Cloud 24/7, multi-servidor, layout e updater foram preservados.'
+          if gh release view 'v1.6.27-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.27-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.27-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.27-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.27-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.27-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige o loop de senha/login: confirmação por avanço real do diálogo, ACK com tamanho do conteúdo sem expor senha, fim da resposta automática concorrente no multi-servidor e transporte Windows-1252.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.27-beta.1' || true
+          git push
