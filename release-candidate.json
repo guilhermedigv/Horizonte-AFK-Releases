@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "stable",
-  "version": "1.6.0",
-  "published_at": "2026-09-06T04:12:00.000Z",
+  "version": "1.6.1",
+  "published_at": "2026-09-06T04:29:11.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.0/Horizonte_AFK.exe",
-  "sha256": "12f80c8212576bacc3bb4a602462b7da0e8f9630b0e0b00157bfdf23a7a8299b",
-  "size_bytes": 2881536,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.1/Horizonte_AFK.exe",
+  "sha256": "5439a662f7bb75f45aa07450a2174008d1a81041c80e786787613dcf64629b5b",
+  "size_bytes": 2889728,
   "encoding": "none",
-  "notes": "Fechar agora envia o app para a bandeja; ícone do Horizonte integrado ao Windows e multi-servidor centralizado em um único painel visível.",
+  "notes": "Corrige a persistência do ícone na bandeja e permite conectar uma conta adicional com nick diferente enquanto o multi-servidor permanece ativo.",
   "min_supported_version": "1.2.0"
 }
