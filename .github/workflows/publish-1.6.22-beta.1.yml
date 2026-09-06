@@ -1,0 +1,61 @@
+name: Publicar Horizonte AFK 1.6.22 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.22-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://productionresultssa18.blob.core.windows.net/actions-results/444c0f99-5080-4064-a7fa-75139ddbb957/workflow-job-run-e078c0b1-61b1-5119-96dd-0bd414053965/artifacts/03035c19f51712298995df0786c42d39682302540f4d0c98df51805eadb493ef.zip?rscd=attachment%3B+filename%3D%22Horizonte-AFK-1.6.22-beta.1.zip%22&rsct=application%2Fzip&se=2026-09-06T20%3A28%3A15Z&sig=Y36UseB3IfsnyX2cXxU9owgLZEC%2BEMoJztZK2SVaV4s%3D&ske=2026-09-06T23%3A47%3A42Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-09-06T19%3A47%3A42Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-09-06T20%3A18%3A10Z&sv=2025-11-05'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK_1.6.22-beta.1.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5823488'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          echo "EXE=$EXE" >> "$GITHUB_ENV"
+          echo "EXE SHA256=$SHA SIZE=$SIZE"
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view 'v1.6.22-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.22-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.22-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.22-beta.1' --notes 'Corrige o envio das respostas dos dialogs de login, senha, 2FA e listas. A 1.6.21 espelhava corretamente o dialog real do RakSAMP, mas tentava acionar o botão nativo oculto com BM_CLICK. A 1.6.22 envia WM_COMMAND/BN_CLICKED diretamente ao SAMPDlgProc depois de preencher o campo nativo, fazendo a resposta chegar ao servidor também no multi-servidor. Mantém as correções anteriores de nick estrito, lifecycle local, Centro de Contas e Cloud 24/7.' --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.22-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.22-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige o botão Logar e demais respostas de dialogs locais/multi-servidor usando WM_COMMAND direto no dialog nativo oculto. Preserva Cloud 24/7 e as correções anteriores.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json Horizonte_AFK.exe
+          git commit -m 'release: v1.6.22-beta.1' || true
+          git push
