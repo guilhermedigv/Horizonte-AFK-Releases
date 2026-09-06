@@ -6,8 +6,8 @@
   "available": false,
   "mandatory": false,
   "download_url": null,
-  "sha256": "e6a1f48ad5c5fe04ef4e66d76f2f36b91413f79a2123bddadc0f04ba25f12392",
-  "size_bytes": 6204928,
+  "sha256": "c1570babd9530d2128ef21477206c7f76ba84391d1dc386609eb504317e21ed0",
+  "size_bytes": 2370560,
   "encoding": "gzip",
   "notes": "Build 1.3.0 de teste: reaplica o redesign público sobre o núcleo e os dialogs da versão validada, adiciona tela própria de atualização, verificação automática ao abrir e aviso em tempo real quando surgir uma nova versão enquanto o launcher estiver aberto. O canal permanece desativado até a build ser validada e publicada.",
   "min_supported_version": "1.3.0"
