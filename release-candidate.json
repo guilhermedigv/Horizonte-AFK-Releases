@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.6-beta.3",
-  "published_at": "2026-09-06T07:50:30.000Z",
+  "version": "1.6.6-beta.4",
+  "published_at": "2026-09-06T07:58:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.3/Horizonte_AFK.exe",
-  "sha256": "04c614d20aacd07ed9e4cff4aeb07acfab3ce8339bb3fa4d7a58932a99453ce5",
-  "size_bytes": 2928128,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.4/Horizonte_AFK.exe",
+  "sha256": "df1fd8fdbe9f7c9b96fd5f6b38f1aa0b26d2823b86a9a7bc9e3701564eb63c49",
+  "size_bytes": 2928640,
   "encoding": "none",
-  "notes": "Corrige o fluxo inicial do modo 24/7 para impedir spawn automático antes do login/2FA e permitir observar os dialogs do servidor com segurança.",
+  "notes": "Alinha o modo 24/7 ao mesmo fluxo do modo local: Still + spawn manual no backend, com login/2FA/dialogs antes do spawn.",
   "min_supported_version": "1.2.0"
 }

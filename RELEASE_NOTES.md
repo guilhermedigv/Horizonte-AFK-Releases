@@ -1,12 +1,11 @@
-# Horizonte AFK 1.6.6-beta.3
+# Horizonte AFK 1.6.6-beta.4
 
-Correção do fluxo inicial do modo Cloud 24/7.
+Fluxo Cloud alinhado ao modo local.
 
-- Impede o RakSAMP da Discloud de tentar spawnar antes do login/2FA.
-- Mantém o processamento dos scripts/RPCs para que os dialogs reais do servidor sejam exibidos no próprio Horizonte AFK.
-- Mantém o console/chat puro da nuvem e o diagnóstico de IP.
-- Mantém o modo local e o fail-safe intactos.
-
-Esta é uma beta de validação do handshake: primeiro confirme que os dialogs de login/2FA aparecem sem o servidor bloquear a conexão. A finalização automática do spawn será ajustada depois de validar a sequência real do servidor.
+- Usa modo Still na sessão Cloud, igual ao launcher local.
+- Exige backend Cloud v0.4.2 com manual_spawn=1 antes de permitir conectar.
+- O RakSAMP não deve mais pular login/2FA nem tentar spawn prematuro.
+- Dialogs reais continuam aparecendo no próprio Horizonte AFK.
+- Mantém console/chat puro, diagnóstico de IP e modo local intacto.
 
 SHA-256: 
