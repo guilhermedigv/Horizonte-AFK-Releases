@@ -3,6 +3,19 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.6.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigida a persistência do ícone do Horizonte AFK na bandeja do Windows enquanto o aplicativo continua em execução.",
+        "A bandeja mantém uma cópia própria do ícone e refaz o registro com o Explorer quando necessário.",
+        "Falhas secundárias no menu da bandeja não removem mais o acesso ao aplicativo em execução.",
+        "No modo multi-servidor, servidor, nick e o botão de conectar permanecem disponíveis para uma conta adicional.",
+        "É possível conectar outra conta com nick diferente sem encerrar as sessões multi-servidor existentes.",
+        "Dialogs da conta adicional têm prioridade para evitar sobreposição com login e 2FA das sessões múltiplas.",
+        "Núcleo de conexão, dialogs, tela cheia e updater SHA-256 preservados."
+      ]
+    },
+    {
       "version": "1.6.0",
       "date": "2026-09-06",
       "changes": [
