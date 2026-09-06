@@ -1,7 +1,12 @@
-# Horizonte AFK 1.4.1 — teste do updater
+# Horizonte AFK 1.5.0
 
-Apenas o número da versão foi alterado em relação à 1.4.0 corrigida. Painel, conexão, dialogs e comportamento do updater permanecem iguais.
+Esta versão adiciona recursos de uso diário sem trocar o núcleo de conexão e dialogs validado da linha 1.4.x.
 
-Com a 1.4.0 aberta, aguarde o aviso de atualização e clique em **Atualizar agora**. O mesmo EXE deve ser substituído e reiniciar mostrando **v1.4.1**. Ao abrir uma 1.4.0 fechada, a atualização deve ocorrer antes do painel.
+- Fechar (×) agora minimiza o launcher e mantém a sessão AFK ativa.
+- Novo botão ⏻ para sair completamente e encerrar a sessão quando desejado.
+- Tela cheia/maximizada pelo botão □, duplo clique na barra superior ou F11.
+- Novo modo multi-servidor: selecione dois ou mais Horizonte RP e abra sessões independentes.
+- Cada sessão multi-servidor mantém processo, login, 2FA e dialogs separados.
+- Updater automático e validação SHA-256 preservados.
 
-Não é necessário baixar outro EXE para esse teste. As prévias antigas com updater defeituoso continuam precisando da reparação única documentada na 1.4.0.
+Quem estiver na v1.4.1 receberá a v1.5.0 pelo atualizador automático após a publicação.
