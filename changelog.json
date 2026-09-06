@@ -3,6 +3,18 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.4.0",
+      "date": "2026-09-06",
+      "changes": [
+        "Novo visual e ícone integrados ao painel.",
+        "Preservados o núcleo de conexão e todos os dialogs da 1.3.0 validada.",
+        "Corrigida a tela do updater que falhava antes do download.",
+        "Atualização por versão/hash com SHA-256, substituição do mesmo EXE e restauração se o reinício falhar.",
+        "Pacote completo para instalação nova e atualização de instalações existentes.",
+        "Manifesto público compatível; disponibilizada reparação única para builds antigas com updater defeituoso."
+      ]
+    },
+    {
       "version": "1.3.1",
       "date": "2026-09-05",
       "changes": [
