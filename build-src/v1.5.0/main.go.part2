@@ -1,0 +1,89 @@
+
+			_ = os.Remove(marker)
+			if runUpdater(selfPath) {
+				return
+			}
+			continue
+		}
+		return
+	}
+}
+
+func runPanel(selfPath, marker string) {
+	local := os.Getenv("LOCALAPPDATA")
+	if local == "" {
+		if c, e := os.UserConfigDir(); e == nil {
+			local = c
+		} else {
+			local = os.TempDir()
+		}
+	}
+	root := filepath.Join(local, "HorizonteAFK", "runtime-v9-rpc-dialogs")
+	if e := os.MkdirAll(root, 0755); e != nil {
+		messageBox("Horizonte AFK", "Não foi possível preparar os arquivos internos.")
+		return
+	}
+	ps, e := payload.ReadFile("payload/Horizonte-AFK.ps1")
+	if e != nil {
+		messageBox("Horizonte AFK", "O painel interno não foi encontrado.")
+		return
+	}
+	ps = applyFeaturePatch(ps)
+	hero, _ := payload.ReadFile("payload/hero_bg.jpg")
+	icon, _ := payload.ReadFile("payload/hz_icon.png")
+	psPath := filepath.Join(root, "Horizonte-AFK.ps1")
+	enginePath := filepath.Join(root, "RakSAMPClient.exe")
+	engine, e := payload.ReadFile("payload/RakSAMPClient.exe")
+	if e != nil {
+		messageBox("Horizonte AFK", "O componente de conexão não foi encontrado.")
+		return
+	}
+	sum := sha256.Sum256(engine)
+	if hex.EncodeToString(sum[:]) != expectedEngineSHA256 {
+		messageBox("Horizonte AFK", "A verificação do componente interno falhou.")
+		return
+	}
+	if fileSHA256(enginePath) != expectedEngineSHA256 {
+		if e := os.WriteFile(enginePath, engine, 0755); e != nil {
+			messageBox("Horizonte AFK", "Não foi possível preparar a conexão.")
+			return
+		}
+	}
+	if len(hero) > 0 {
+		_ = os.WriteFile(filepath.Join(root, "hero_bg.jpg"), hero, 0644)
+	}
+	if len(icon) > 0 {
+		_ = os.WriteFile(filepath.Join(root, "hz_icon.png"), icon, 0644)
+	}
+	if len(ps) < 3 || !(ps[0] == 0xEF && ps[1] == 0xBB && ps[2] == 0xBF) {
+		ps = append([]byte{0xEF, 0xBB, 0xBF}, ps...)
+	}
+	if e := os.WriteFile(psPath, ps, 0644); e != nil {
+		messageBox("Horizonte AFK", "Não foi possível preparar o painel.")
+		return
+	}
+	selfHash := fileSHA256(selfPath)
+	c := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-STA", "-WindowStyle", "Hidden", "-File", psPath)
+	c.Env = append(os.Environ(), "HZ_UPDATE_REQUEST_PATH="+marker, "HZ_LAUNCHER_HASH="+selfHash, "HZ_LAUNCHER_VERSION="+appVersion)
+	c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
+	if e := c.Start(); e != nil {
+		messageBox("Horizonte AFK", "Falha ao abrir o painel.")
+		return
+	}
+	_ = c.Wait()
+}
+
+func fileSHA256(path string) string {
+	b, e := os.ReadFile(path)
+	if e != nil {
+		return ""
+	}
+	s := sha256.Sum256(b)
+	return hex.EncodeToString(s[:])
+}
+func messageBox(title, text string) {
+	script := fmt.Sprintf("Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show(%s,%s)|Out-Null", psQuote(text), psQuote(title))
+	c := exec.Command("powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", script)
+	c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
+	_ = c.Run()
+}
