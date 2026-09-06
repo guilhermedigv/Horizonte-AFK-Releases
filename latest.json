@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
-  "channel": "stable",
-  "version": "1.6.5-hotfix",
-  "published_at": "2026-09-06T06:51:00.000Z",
+  "channel": "beta",
+  "version": "1.6.6-beta.1",
+  "published_at": "2026-09-06T07:13:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.5-hotfix/Horizonte_AFK.exe",
-  "sha256": "4f9f7424021ed824413f637d21a9561a1b34de6be29ba36b5ef877a377c2d862",
-  "size_bytes": 2902016,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.1/Horizonte_AFK.exe",
+  "sha256": "b340487ff3b0da37c921e7df8bc1729864e04387927784fe93cc72a90b3214a2",
+  "size_bytes": 2921984,
   "encoding": "none",
-  "notes": "Correção emergencial: restaura a base estável v1.6.3 após a regressão que podia fazer o v1.6.4-beta.2 abrir sem exibir a interface.",
+  "notes": "Reintroduz o modo 24/7 direto no EXE com correção da falha de abertura, teste real de inicialização WPF e fallback seguro para o modo local.",
   "min_supported_version": "1.2.0"
 }

@@ -1,7 +1,18 @@
 {
   "product": "Horizonte AFK",
-  "channel": "stable",
+  "channel": "beta",
   "versions": [
+    {
+      "version": "1.6.6-beta.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Modo 24/7 voltou diretamente dentro do Horizonte AFK, sem abrir painel no navegador.",
+        "Corrigida a falha de sintaxe que podia fazer a beta anterior iniciar sem exibir a interface.",
+        "Adicionado teste que analisa e carrega o painel WPF final antes de permitir a publicação.",
+        "Adicionado fail-safe: se a camada Cloud não puder ser aplicada, o launcher mantém o modo local funcional.",
+        "Login, 2FA e dialogs da sessão Cloud continuam sendo exibidos no próprio EXE."
+      ]
+    },
     {
       "version": "1.6.5-hotfix",
       "date": "2026-09-06",
