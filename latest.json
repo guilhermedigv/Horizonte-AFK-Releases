@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.27-beta.1",
-  "published_at": "2026-09-06T23:25:10Z",
+  "version": "1.6.28-beta.1",
+  "published_at": "2026-09-06T23:40:19Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.27-beta.1/Horizonte_AFK.exe",
-  "sha256": "08cf29dbb630407cea829161a9cbd2dd0d87df3f159b661d4348beff1afada16",
-  "size_bytes": 5836288,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.28-beta.1/Horizonte_AFK.exe",
+  "sha256": "be55428859f845a40a6893da40373e267b8f3f23b1b01bf7e1ba79eaca373006",
+  "size_bytes": 5840384,
   "encoding": "none",
-  "notes": "Corrige o loop de senha/login: confirmação por avanço real do diálogo, ACK com tamanho do conteúdo sem expor senha, fim da resposta automática concorrente no multi-servidor e transporte Windows-1252.",
+  "notes": "Sincroniza o diálogo visível do multi-servidor com a etapa real do servidor e evita abrir uma sessão local duplicada quando o mesmo nick/servidor já está ativo 24/7 na nuvem.",
   "min_supported_version": "1.2.0"
 }
