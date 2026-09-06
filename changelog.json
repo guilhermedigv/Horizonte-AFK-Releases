@@ -3,6 +3,14 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.4.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Build de teste para validar atualização automática da 1.4.0.",
+        "Somente o número da versão foi alterado; painel, conexão e dialogs preservados."
+      ]
+    },
+    {
       "version": "1.4.0",
       "date": "2026-09-06",
       "changes": [
