@@ -1,0 +1,14 @@
+{
+  "product": "Horizonte AFK",
+  "channel": "stable",
+  "version": "1.4.0",
+  "published_at": "2026-09-06T02:28:23.783Z",
+  "available": true,
+  "mandatory": false,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.4.0/Horizonte_AFK.exe",
+  "sha256": "be079dfc3adc174a3eb4f144fe0bcc1c6219c59504e9cc431cfb7b91b990bc20",
+  "size_bytes": 2824704,
+  "encoding": "none",
+  "notes": "Horizonte AFK 1.4.0 oficial: novo visual, updater corrigido e núcleo de conexão/dialogs preservado. Builds antigas com defeito no updater precisam de uma reparação única.",
+  "min_supported_version": "1.2.0"
+}
