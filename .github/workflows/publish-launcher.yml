@@ -1,181 +1,108 @@
-name: Publicar Horizonte AFK
+name: Diagnosticar fonte Horizonte AFK
 
 on:
   push:
     branches: [main]
     paths:
-      - "Horizonte_AFK.exe"
-      - "Horizonte_AFK_UPDATE_*.exe"
-      - "build/v*/READY"
       - ".github/workflows/publish-launcher.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  publish:
+  diagnose:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Preparar Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          cache: false
-
-      - name: Preparar ou compilar executável
+      - name: Testar pacotes candidatos sem publicar
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf .diag-hz
+          mkdir -p .diag-hz
 
-          READY_FILE="$(find build -maxdepth 2 -type f -name READY -print 2>/dev/null | sort -V | tail -n 1 || true)"
-          CANDIDATE="$(find . -maxdepth 1 -type f -name 'Horizonte_AFK_UPDATE_*.exe' -print -quit || true)"
+          python3 <<'PY'
+          import base64, gzip, io, pathlib, tarfile
 
-          rm -rf .build-hz
-          mkdir -p .build-hz
+          root = pathlib.Path('build/v1.4.0')
+          candidates = [
+              ('oficial-zz-small', [
+                  root/'zz-small/source-part-00.b64',
+                  root/'zz-small/source-part-01.b64',
+                  root/'zz-small/source-part-02.b64',
+                  root/'zz-small/source-part-03.b64',
+                  root/'zz-small/source-part-04.b64',
+              ]),
+              ('raiz-00-02', [
+                  root/'source-part-00.b64',
+                  root/'source-part-01.b64',
+                  root/'source-part-02.b64',
+              ]),
+              ('z-normal-atual', [
+                  root/'z-normal/source-part-00.b64',
+                  root/'z-normal/source-part-01.b64',
+                  root/'z-normal/source-part-03.b64',
+                  root/'z-normal/source-part-04.b64',
+              ]),
+              ('misto-raiz00-02-z03-04', [
+                  root/'source-part-00.b64',
+                  root/'source-part-01.b64',
+                  root/'source-part-02.b64',
+                  root/'z-normal/source-part-03.b64',
+                  root/'z-normal/source-part-04.b64',
+              ]),
+              ('misto-z00-01-raiz02-z03-04', [
+                  root/'z-normal/source-part-00.b64',
+                  root/'z-normal/source-part-01.b64',
+                  root/'source-part-02.b64',
+                  root/'z-normal/source-part-03.b64',
+                  root/'z-normal/source-part-04.b64',
+              ]),
+              ('z-normal-00-01', [
+                  root/'z-normal/source-part-00.b64',
+                  root/'z-normal/source-part-01.b64',
+              ]),
+          ]
 
-          if [ -n "$READY_FILE" ]; then
-            BUILD_ROOT="$(dirname "$READY_FILE")"
-            SOURCE_BUNDLE="$BUILD_ROOT/source.tgz.b64"
-            SOURCE_DIR=""
-
-            if compgen -G "$BUILD_ROOT/zz-small/source-part-*.b64" > /dev/null; then
-              SOURCE_DIR="$BUILD_ROOT/zz-small"
-            elif compgen -G "$BUILD_ROOT/source-part-*.b64" > /dev/null; then
-              SOURCE_DIR="$BUILD_ROOT"
-            fi
-
-            if [ -f "$SOURCE_BUNDLE" ]; then
-              echo "Validando pacote único $SOURCE_BUNDLE"
-              python3 - "$SOURCE_BUNDLE" <<'PY'
-          import base64, gzip, io, pathlib, tarfile, sys
-          src = pathlib.Path(sys.argv[1])
-          text = ''.join(src.read_text(encoding='ascii').split())
-          text += '=' * ((-len(text)) % 4)
-          raw = base64.b64decode(text, validate=True)
-          gzip.decompress(raw)
-          with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tf:
-              names = tf.getnames()
-              if not any(n.endswith('.go') for n in names):
-                  raise SystemExit('Pacote TAR não contém fonte Go')
-          pathlib.Path('.build-hz/source.tgz').write_bytes(raw)
-          PY
-            elif [ -n "$SOURCE_DIR" ]; then
-              echo "Procurando sequência íntegra em $SOURCE_DIR"
-              mapfile -t PARTS < <(find "$SOURCE_DIR" -maxdepth 1 -type f -name 'source-part-*.b64' -print | sort -V)
-              test "${#PARTS[@]}" -gt 0
-
-              for i in "${!PARTS[@]}"; do
-                EXPECTED="source-part-$(printf '%02d' "$i").b64"
-                ACTUAL="$(basename "${PARTS[$i]}")"
-                if [ "$ACTUAL" != "$EXPECTED" ]; then
-                  echo "Parte ausente ou fora de sequência: esperado $EXPECTED, encontrado $ACTUAL" >&2
-                  exit 1
-                fi
-              done
-
-              python3 - .build-hz/source.tgz "${PARTS[@]}" <<'PY'
-          import base64, gzip, io, pathlib, tarfile, sys
-
-          out = pathlib.Path(sys.argv[1])
-          parts = [pathlib.Path(p) for p in sys.argv[2:]]
-          selected = None
-
-          # Algumas tentativas antigas deixaram dados extras após o fim real do
-          # pacote. Testamos apenas prefixos contíguos 00..N e aceitamos um
-          # candidato somente se Base64, gzip e TAR estiverem íntegros.
-          for count in range(len(parts), 0, -1):
-              text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts[:count])
+          valid = []
+          for label, parts in candidates:
+              if not all(p.is_file() for p in parts):
+                  print(f'[{label}] ausente')
+                  continue
+              text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts)
               padded = text + '=' * ((-len(text)) % 4)
               try:
                   raw = base64.b64decode(padded, validate=True)
                   gzip.decompress(raw)
                   with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tf:
                       names = tf.getnames()
-                      if not any(n.endswith('.go') for n in names):
-                          continue
-                      # Exige pelo menos um arquivo-fonte principal utilizável.
-                      if not any(pathlib.PurePosixPath(n).name == 'main.go' for n in names):
-                          continue
+                      go_names = [n for n in names if n.endswith('.go')]
+                      if not go_names:
+                          raise ValueError('TAR sem fonte Go')
+                      if not any(pathlib.PurePosixPath(n).name == 'main.go' for n in go_names):
+                          raise ValueError('TAR sem main.go')
+                      out = pathlib.Path('.diag-hz')/label
+                      out.mkdir(parents=True, exist_ok=True)
+                      tf.extractall(out)
+                  valid.append((label, len(raw), names))
+                  print(f'VALIDO [{label}] bytes={len(raw)} entradas={len(names)}')
               except Exception as exc:
-                  print(f'Prefixo 00..{count-1:02d} rejeitado: {type(exc).__name__}: {exc}')
-                  continue
+                  print(f'INVALIDO [{label}] {type(exc).__name__}: {exc}')
 
-              selected = (count, raw, names)
-              break
+          print('\n=== RESULTADO ===')
+          if not valid:
+              print('Nenhuma combinação conhecida formou um pacote íntegro.')
+              raise SystemExit(2)
 
-          if selected is None:
-              raise SystemExit('Nenhum prefixo das partes forma um pacote gzip/tar Go íntegro')
-
-          count, raw, names = selected
-          print(f'Pacote íntegro encontrado: partes 00..{count-1:02d} ({len(raw)} bytes; {len(names)} entradas TAR)')
-          out.write_bytes(raw)
-          PY
-            elif [ -n "$CANDIDATE" ]; then
-              cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
-            else
-              echo "Nenhum pacote fonte oficial ou executável candidato foi encontrado em $BUILD_ROOT" >&2
-              exit 1
-            fi
-
-            if [ -f .build-hz/source.tgz ]; then
-              gzip -t .build-hz/source.tgz
-              tar -tzf .build-hz/source.tgz >/dev/null
-              tar -xzf .build-hz/source.tgz -C .build-hz
-              cd .build-hz
-              GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../Horizonte_AFK.exe .
-              cd ..
-            fi
-          elif [ -n "$CANDIDATE" ]; then
-            cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
-          fi
-
-          test -f Horizonte_AFK.exe
-          test "$(head -c 2 Horizonte_AFK.exe)" = "MZ"
-
-      - name: Validar executável e ativar manifesto
-        shell: bash
-        run: |
-          set -euo pipefail
-          HASH="$(sha256sum Horizonte_AFK.exe | awk '{print $1}')"
-          SIZE="$(stat -c%s Horizonte_AFK.exe)"
-          NOW="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-
-          python3 - "$HASH" "$SIZE" "$NOW" <<'PY'
-          import json, sys
-          from pathlib import Path
-
-          sha256, size, now = sys.argv[1], int(sys.argv[2]), sys.argv[3]
-          p = Path('latest.json')
-          data = json.loads(p.read_text(encoding='utf-8'))
-          data['available'] = True
-          data['published_at'] = now
-          data['download_url'] = 'https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/Horizonte_AFK.exe'
-          data['sha256'] = sha256
-          data['size_bytes'] = size
-          data['encoding'] = 'none'
-          data.pop('parts', None)
-          data.pop('part_encoding', None)
-          data['notes'] = 'Novo visual integrado ao Horizonte AFK, publicado como executável único com atualização no próprio arquivo e validação SHA-256.'
-          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          for label, size, names in valid:
+              print(f'CANDIDATO_VALIDO={label} bytes={size}')
+              print('ARQUIVOS=' + ', '.join(names[:30]))
           PY
 
-      - name: Commitar executável e manifesto
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "Horizonte AFK Updater"
-          git config user.email "actions@users.noreply.github.com"
-          git add Horizonte_AFK.exe latest.json
-          for f in Horizonte_AFK_UPDATE_*.exe; do
-            [ -e "$f" ] || continue
-            git rm -f "$f"
-          done
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          VERSION="$(python3 -c "import json; print(json.load(open('latest.json'))['version'])")"
-          git commit -m "Publica atualização automática $VERSION"
-          git push
+          echo "=== INDÍCIOS DE UI/VERSÃO NOS CANDIDATOS VÁLIDOS ==="
+          grep -RniE "Horizonte|1\.4\.0|AFK|site|visual|menu|janela|launcher|updat" .diag-hz --include='*.go' | head -n 120 || true
+
+          # Diagnóstico proposital: não permite que esta execução publique artefato.
+          exit 78
