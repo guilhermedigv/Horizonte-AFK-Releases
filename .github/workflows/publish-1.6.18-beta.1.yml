@@ -1,0 +1,61 @@
+name: Publicar Horizonte AFK 1.6.18 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.18-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://productionresultssa1.blob.core.windows.net/actions-results/4ad49118-3639-43aa-9b39-2fd04827235d/workflow-job-run-593722b0-ebe4-50b8-ace7-f2254baa45c2/artifacts/37e5ccfac4f19c69ddbdd1dc82a37150eda8fdbd97967aba85e68db78e4405fa.zip?rscd=attachment%3B+filename%3D%22Horizonte-AFK-1.6.18-beta.1.zip%22&rsct=application%2Fzip&se=2026-09-06T18%3A50%3A24Z&sig=IaaU9VPF7qLLr9ryQ9LnHCUQB%2F%2BwxleOpR2lMfJp8L4%3D&ske=2026-09-06T20%3A56%3A06Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-09-06T16%3A56%3A06Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-09-06T18%3A40%3A19Z&sv=2025-11-05' -o build.zip
+          unzip -j build.zip 'Horizonte_AFK_1.6.18-beta.1.exe' -d out
+          mv out/Horizonte_AFK_1.6.18-beta.1.exe Horizonte_AFK.exe
+          echo '2bcc8c0eb99c938a4977b5844c8f07a9b6933b9f5c9bad3fc33694c257f070b3  Horizonte_AFK.exe' | sha256sum -c -
+          test "$(stat -c %s Horizonte_AFK.exe)" = '5800960'
+      - name: Criar release e atualizar manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='v1.6.18-beta.1'
+          NOTES='Centro de Contas agora reconcilia automaticamente as sessões 24/7 que continuam ativas na Discloud mesmo após fechar o launcher. Perfis Cloud são recriados localmente quando necessário, o ID real da sessão é preservado e os estados são atualizados a cada 2 segundos (com botão Atualizar imediato). Fechar o EXE continua sem encerrar a sessão Cloud.'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Horizonte_AFK.exe --clobber
+          else
+            gh release create "$TAG" Horizonte_AFK.exe --title 'Horizonte AFK 1.6.18-beta.1' --notes "$NOTES" --prerelease
+          fi
+          python3 - <<'PY'
+          import json, datetime
+          p='latest.json'
+          with open(p,'r',encoding='utf-8') as f: d=json.load(f)
+          d.update({
+            'product':'Horizonte AFK',
+            'channel':'beta',
+            'version':'1.6.18-beta.1',
+            'published_at':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),
+            'available':True,
+            'mandatory':False,
+            'download_url':'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.18-beta.1/Horizonte_AFK.exe',
+            'sha256':'2bcc8c0eb99c938a4977b5844c8f07a9b6933b9f5c9bad3fc33694c257f070b3',
+            'size_bytes':5800960,
+            'encoding':'none',
+            'notes':'Centro de Contas persistente: sessões Cloud 24/7 são reconciliadas ao abrir o launcher e atualizadas em tempo real a cada 2 segundos.',
+            'min_supported_version':'1.2.0'
+          })
+          d.pop('parts',None); d.pop('part_encoding',None)
+          with open(p,'w',encoding='utf-8') as f: json.dump(d,f,ensure_ascii=False,indent=2); f.write('\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: apontar updater para 1.6.18-beta.1'
+          git push
