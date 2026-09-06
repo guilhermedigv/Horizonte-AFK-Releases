@@ -3,6 +3,18 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.5.0",
+      "date": "2026-09-06",
+      "changes": [
+        "Fechar o painel agora minimiza a janela e mantém a sessão AFK ativa.",
+        "Adicionado botão de saída completa separado para encerrar a sessão e o launcher quando desejado.",
+        "Adicionado modo tela cheia/maximizado pelo botão, duplo clique na barra superior e tecla F11.",
+        "Adicionado modo multi-servidor para selecionar e conectar em vários Horizonte RP ao mesmo tempo.",
+        "Sessões multi-servidor ficam isoladas por processo/runtime, preservando login, 2FA e dialogs de cada servidor.",
+        "Mantidos o updater com SHA-256 e o núcleo de conexão/dialogs validado da linha 1.4.x."
+      ]
+    },
+    {
       "version": "1.4.1",
       "date": "2026-09-06",
       "changes": [
