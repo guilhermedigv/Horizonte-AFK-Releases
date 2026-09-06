@@ -1,0 +1,43 @@
+name: Extrair runtime beta3
+on:
+  push:
+    branches: [debug-beta3-extract]
+    paths:
+      - '.github/workflows/extract-runtime-debug.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Executar beta3 e capturar script gerado
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:HZ_TEST_MODE = '1'
+          $p = Start-Process -FilePath (Join-Path $PWD 'Horizonte_AFK.exe') -PassThru
+          $found = $null
+          for ($i = 0; $i -lt 90; $i++) {
+            Start-Sleep -Milliseconds 500
+            $root = Join-Path $env:LOCALAPPDATA 'HorizonteAFK'
+            if (Test-Path $root) {
+              $found = Get-ChildItem -Path $root -Filter 'Horizonte-AFK.ps1' -File -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+              if ($found) { break }
+            }
+            if ($p.HasExited -and $i -gt 10) { break }
+          }
+          if (-not $found) { throw 'O script runtime não foi encontrado.' }
+          Copy-Item -LiteralPath $found.FullName -Destination (Join-Path $PWD 'Horizonte-AFK-beta3-runtime.ps1') -Force
+          Write-Host "Runtime: $($found.FullName)"
+          Write-Host "Bytes: $((Get-Item (Join-Path $PWD 'Horizonte-AFK-beta3-runtime.ps1')).Length)"
+          try { if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } } catch {}
+          Get-Process powershell -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+      - name: Exportar runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizonte-beta3-runtime
+          path: Horizonte-AFK-beta3-runtime.ps1
+          if-no-files-found: error
+          retention-days: 1
