@@ -1,0 +1,75 @@
+name: Promover Horizonte AFK 1.6.13 beta1
+on:
+  push:
+    branches: [publish-1.6.13-beta.1]
+    paths:
+      - '.github/workflows/promote-1.6.13-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL_B64: 'aHR0cHM6Ly9zZG1udHByYnJhemlsc291dGgub2FpdXNlcmNvbnRlbnQuY29tL2ZpbGVzLzAwMDAwMDAwLTM0MDAtODIwZS1hZWFmLTA5ZWY2ZGRjNGY1ZS9yYXc/c2U9MjAyNi0wOS0wNlQxNiUzQTQ5JTNBMDVaJnNwPXImc3Y9MjAyNi0wMi0wNiZzcj1iJnNjaWQ9ZmE2NWQ0MDgtZTU4OC01YWRhLTlkZjEtYzgwN2M5YjZjYWYyJnNrb2lkPTY4ZjM3ZmE3LTRlMDgtNDc4Yi05M2YzLWM3MmQ1NjNhMGFiMyZza3RpZD1hNDhjY2E1Ni1lNmRhLTQ4NGUtYTgxNC05Yzg0OTY1MmJjYjMmc2t0PTIwMjYtMDktMDZUMTYlM0EzNCUzQTM4WiZza2U9MjAyNi0wOS0wN1QxNiUzQTM0JTNBMzhaJnNrcz1iJnNrdj0yMDI2LTAyLTA2JnNpZz0ydEhTWHlKSmNqZ2NleUpuMHZCQndNQXFBZm45ZkhwM0pmeDZvVks2THRZJTNE'
+      VERSION: '1.6.13-beta.1'
+      EXPECTED_SHA: '649a699cd7889ac1eeaf551ba2fcc763696321f403ca68885b80532b7ace8f0e'
+      EXPECTED_SIZE: '2825216'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Baixar e validar build
+        run: |
+          ARTIFACT_URL="$(printf '%s' "$ARTIFACT_URL_B64" | base64 -d)"
+          curl -fL --retry 3 "$ARTIFACT_URL" -o /tmp/hz-artifact.zip
+          rm -rf /tmp/hz-artifact && mkdir -p /tmp/hz-artifact
+          unzip -q /tmp/hz-artifact.zip -d /tmp/hz-artifact
+          test -f "/tmp/hz-artifact/Horizonte_AFK_1.6.13-beta.1.exe"
+          cp "/tmp/hz-artifact/Horizonte_AFK_1.6.13-beta.1.exe" /tmp/Horizonte_AFK.exe
+          python3 - <<'PY'
+          import hashlib,os
+          p='/tmp/Horizonte_AFK.exe'; d=open(p,'rb').read()
+          assert d[:2]==b'MZ'
+          assert len(d)==int(os.environ['EXPECTED_SIZE'])
+          assert hashlib.sha256(d).hexdigest()==os.environ['EXPECTED_SHA']
+          print('Build validada:',len(d),hashlib.sha256(d).hexdigest())
+          PY
+      - name: Preparar atualização oficial
+        run: |
+          git checkout main
+          git pull --ff-only origin main
+          cp /tmp/Horizonte_AFK.exe Horizonte_AFK.exe
+          python3 - <<'PY'
+          import json,os,datetime,pathlib
+          root=pathlib.Path('.'); v=os.environ['VERSION']; sha=os.environ['EXPECTED_SHA']; size=int(os.environ['EXPECTED_SIZE'])
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z')
+          url=f'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v{v}/Horizonte_AFK.exe'
+          changes=[
+            'A aba CONEXÃO agora lê o chat local diretamente da lista nativa do RakSAMP, em vez de depender de um arquivo de log que podia não existir.',
+            'No modo 24/7, o chat reutiliza o mesmo console remoto já usado pelo painel de status, mantendo as mensagens do servidor centralizadas na aba CONEXÃO.',
+            'Mensagens de chat e client messages são exibidas no painel com os códigos de cor do SA-MP removidos.',
+            'A janela CONEXÃO deixou de ser modal; quando um /comando abre um dialog, o chat é ocultado temporariamente e o dialog integrado recebe foco no launcher principal.',
+            'Depois de responder ou fechar o dialog, a janela CONEXÃO volta automaticamente para continuar o chat.',
+            'Mantidos o envio de chat/comandos, bloqueio de comandos internos iniciados por !, 24/7, multi-servidor, Centro de Contas e configurações.'
+          ]
+          candidate={
+            'product':'Horizonte AFK','channel':'beta','version':v,'published_at':now,'available':True,'mandatory':False,
+            'download_url':url,'sha256':sha,'size_bytes':size,'encoding':'none',
+            'notes':'Chat local/cloud corrigido e dialogs de comandos agora ficam acessíveis em primeiro plano.',
+            'min_supported_version':'1.2.0'
+          }
+          root.joinpath('release-candidate.json').write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          path=root/'release-changelog.json'; changelog=json.loads(path.read_text(encoding='utf-8-sig'))
+          versions=[x for x in changelog.get('versions',[]) if x.get('version')!=v]
+          versions.insert(0,{'version':v,'date':'2026-09-06','changes':changes})
+          changelog['channel']='beta'; changelog['versions']=versions
+          path.write_text(json.dumps(changelog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          notes='# Horizonte AFK 1.6.13-beta.1\n\nChat completo na aba Conexão e correção da camada de dialogs.\n\n'+''.join(f'- {x}\n' for x in changes)+f'\nSHA-256: {sha}\n'
+          root.joinpath('RELEASE_NOTES.md').write_text(notes,encoding='utf-8')
+          root.joinpath('SHA256SUMS.txt').write_text(f'{sha}  Horizonte_AFK.exe\n',encoding='utf-8')
+          PY
+          git config user.name 'Horizonte AFK Publisher'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe release-candidate.json release-changelog.json RELEASE_NOTES.md SHA256SUMS.txt
+          git commit -m 'release: Horizonte AFK 1.6.13-beta.1'
+          git push origin main
