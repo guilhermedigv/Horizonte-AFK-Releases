@@ -48,18 +48,22 @@ jobs:
             fi
 
             if [ -f "$SOURCE_BUNDLE" ]; then
-              echo "Compilando a partir de $SOURCE_BUNDLE"
+              echo "Validando pacote único $SOURCE_BUNDLE"
               python3 - "$SOURCE_BUNDLE" <<'PY'
-          import base64, pathlib, re, sys
+          import base64, gzip, io, pathlib, tarfile, sys
           src = pathlib.Path(sys.argv[1])
           text = ''.join(src.read_text(encoding='ascii').split())
-          if not re.fullmatch(r'[A-Za-z0-9+/]*={0,2}', text):
-              raise SystemExit(f'Base64 inválido em {src}')
           text += '=' * ((-len(text)) % 4)
-          pathlib.Path('.build-hz/source.tgz').write_bytes(base64.b64decode(text, validate=True))
+          raw = base64.b64decode(text, validate=True)
+          gzip.decompress(raw)
+          with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tf:
+              names = tf.getnames()
+              if not any(n.endswith('.go') for n in names):
+                  raise SystemExit('Pacote TAR não contém fonte Go')
+          pathlib.Path('.build-hz/source.tgz').write_bytes(raw)
           PY
             elif [ -n "$SOURCE_DIR" ]; then
-              echo "Compilando a partir das partes oficiais em $SOURCE_DIR"
+              echo "Procurando sequência íntegra em $SOURCE_DIR"
               mapfile -t PARTS < <(find "$SOURCE_DIR" -maxdepth 1 -type f -name 'source-part-*.b64' -print | sort -V)
               test "${#PARTS[@]}" -gt 0
 
@@ -73,14 +77,41 @@ jobs:
               done
 
               python3 - .build-hz/source.tgz "${PARTS[@]}" <<'PY'
-          import base64, pathlib, re, sys
+          import base64, gzip, io, pathlib, tarfile, sys
+
           out = pathlib.Path(sys.argv[1])
           parts = [pathlib.Path(p) for p in sys.argv[2:]]
-          text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts)
-          if not re.fullmatch(r'[A-Za-z0-9+/]*={0,2}', text):
-              raise SystemExit('As partes Base64 contêm caracteres ou padding interno inválidos')
-          text += '=' * ((-len(text)) % 4)
-          out.write_bytes(base64.b64decode(text, validate=True))
+          selected = None
+
+          # Algumas tentativas antigas deixaram dados extras após o fim real do
+          # pacote. Testamos apenas prefixos contíguos 00..N e aceitamos um
+          # candidato somente se Base64, gzip e TAR estiverem íntegros.
+          for count in range(len(parts), 0, -1):
+              text = ''.join(''.join(p.read_text(encoding='ascii').split()) for p in parts[:count])
+              padded = text + '=' * ((-len(text)) % 4)
+              try:
+                  raw = base64.b64decode(padded, validate=True)
+                  gzip.decompress(raw)
+                  with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tf:
+                      names = tf.getnames()
+                      if not any(n.endswith('.go') for n in names):
+                          continue
+                      # Exige pelo menos um arquivo-fonte principal utilizável.
+                      if not any(pathlib.PurePosixPath(n).name == 'main.go' for n in names):
+                          continue
+              except Exception as exc:
+                  print(f'Prefixo 00..{count-1:02d} rejeitado: {type(exc).__name__}: {exc}')
+                  continue
+
+              selected = (count, raw, names)
+              break
+
+          if selected is None:
+              raise SystemExit('Nenhum prefixo das partes forma um pacote gzip/tar Go íntegro')
+
+          count, raw, names = selected
+          print(f'Pacote íntegro encontrado: partes 00..{count-1:02d} ({len(raw)} bytes; {len(names)} entradas TAR)')
+          out.write_bytes(raw)
           PY
             elif [ -n "$CANDIDATE" ]; then
               cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
@@ -127,7 +158,7 @@ jobs:
           data['encoding'] = 'none'
           data.pop('parts', None)
           data.pop('part_encoding', None)
-          data['notes'] = 'Versão estável publicada automaticamente. O mesmo Horizonte_AFK.exe é atualizado e reiniciado com validação SHA-256.'
+          data['notes'] = 'Novo visual integrado ao Horizonte AFK, publicado como executável único com atualização no próprio arquivo e validação SHA-256.'
           p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           PY
 
