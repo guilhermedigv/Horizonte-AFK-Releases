@@ -3,6 +3,18 @@
   "channel": "stable",
   "versions": [
     {
+      "version": "1.6.3",
+      "date": "2026-09-06",
+      "changes": [
+        "Corrigida a regressão da v1.6.2 que podia fazer o Horizonte_AFK.exe abrir sem exibir nenhuma janela.",
+        "O host próprio agora executa o painel como arquivo .ps1 real e preserva $PSScriptRoot e os caminhos internos do aplicativo.",
+        "Adicionado fallback automático para o Windows PowerShell tradicional caso o host próprio falhe em algum Windows específico.",
+        "O host passa a registrar erro interno para facilitar diagnóstico de incompatibilidades futuras.",
+        "Mantidas as correções de bandeja, identidade Horizonte AFK, multi-servidor, conta adicional, login, 2FA e dialogs.",
+        "Núcleo de conexão, RakSAMP e updater SHA-256 preservados."
+      ]
+    },
+    {
       "version": "1.6.2",
       "date": "2026-09-06",
       "changes": [
