@@ -9,6 +9,6 @@
   "sha256": "a6474a1873c269c595a649dc33c9f9ea9985204a47061f3ef8d22d93f8d6023e",
   "size_bytes": 2825728,
   "encoding": "none",
-  "notes": "Correção do ENTER na aba Conexão e Chat sem alterar o envio pelo botão. Build validada.",
+  "notes": "Correção do ENTER na aba Conexão e Chat sem alterar o envio pelo botão. Build validada e pronta para atualização automática.",
   "min_supported_version": "1.2.0"
 }
