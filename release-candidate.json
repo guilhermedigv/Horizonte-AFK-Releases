@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.6-beta.4",
-  "published_at": "2026-09-06T07:58:30.000Z",
+  "version": "1.6.7-beta.1",
+  "published_at": "2026-09-06T08:32:00.000Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.6-beta.4/Horizonte_AFK.exe",
-  "sha256": "df1fd8fdbe9f7c9b96fd5f6b38f1aa0b26d2823b86a9a7bc9e3701564eb63c49",
-  "size_bytes": 2928640,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.7-beta.1/Horizonte_AFK.exe",
+  "sha256": "51991a6e88d2b19eb38db37d44f3a091e6c31930ffa702cef4aefd7d4fc87c0f",
+  "size_bytes": 2956288,
   "encoding": "none",
-  "notes": "Alinha o modo 24/7 ao mesmo fluxo do modo local: Still + spawn manual no backend, com login/2FA/dialogs antes do spawn.",
+  "notes": "Adiciona Centro de Contas com sessões locais/nuvem, login rápido aprendido e persistência das sessões Cloud ao fechar o EXE.",
   "min_supported_version": "1.2.0"
 }

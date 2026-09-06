@@ -3,6 +3,19 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.7-beta.1",
+      "date": "2026-09-06",
+      "changes": [
+        "Nova aba CONTAS na lateral com um UCP simples de contas e sessões.",
+        "Cada perfil salvo oferece conexão LOCAL ou 24/7 NA NUVEM.",
+        "Suporte a várias contas e visualização de sessões ativas/offline.",
+        "Após o primeiro login manual, respostas de dialogs podem ser lembradas para login rápido.",
+        "Dados de login rápido ficam protegidos pelo Windows; na Cloud ficam dentro do armazenamento criptografado.",
+        "Sessões 24/7 não são encerradas ao fechar completamente o Horizonte AFK; desconexão passa a ser explícita pelo Centro de Contas.",
+        "Mantém manual_spawn, parser de dialogs, modo local e fail-safe das betas anteriores."
+      ]
+    },
+    {
       "version": "1.6.6-beta.4",
       "date": "2026-09-06",
       "changes": [
