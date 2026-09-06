@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.28-beta.1",
-  "published_at": "2026-09-06T23:40:19Z",
+  "version": "1.6.29-beta.1",
+  "published_at": "2026-09-06T23:51:10Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.28-beta.1/Horizonte_AFK.exe",
-  "sha256": "be55428859f845a40a6893da40373e267b8f3f23b1b01bf7e1ba79eaca373006",
-  "size_bytes": 5840384,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.29-beta.1/Horizonte_AFK.exe",
+  "sha256": "401b68fbc957e63454141b57b26cf6593d65f0410eaf9b2b5cab8af47063c095",
+  "size_bytes": 5841920,
   "encoding": "none",
-  "notes": "Sincroniza o diálogo visível do multi-servidor com a etapa real do servidor e evita abrir uma sessão local duplicada quando o mesmo nick/servidor já está ativo 24/7 na nuvem.",
+  "notes": "Separa ACK do RakSAMP da transição real do servidor no multi-servidor e impede encerramento falso por leitura transitória do state.json.",
   "min_supported_version": "1.2.0"
 }
