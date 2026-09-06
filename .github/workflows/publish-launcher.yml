@@ -7,6 +7,7 @@ on:
       - "Horizonte_AFK.exe"
       - "Horizonte_AFK_UPDATE_*.exe"
       - "build/v*/source.tgz.b64"
+      - "build/v*/source-part-*.b64"
       - ".github/workflows/publish-launcher.yml"
 
 permissions:
@@ -25,13 +26,20 @@ jobs:
           set -euo pipefail
 
           SOURCE_BUNDLE="$(find build -type f -path '*/source.tgz.b64' -print 2>/dev/null | sort -V | tail -n 1 || true)"
+          SOURCE_PART="$(find build -type f -path '*/source-part-*.b64' -print 2>/dev/null | sort -V | tail -n 1 || true)"
           CANDIDATE="$(find . -maxdepth 1 -type f -name 'Horizonte_AFK_UPDATE_*.exe' -print -quit || true)"
 
-          if [ -n "$SOURCE_BUNDLE" ]; then
-            echo "Compilando a partir de $SOURCE_BUNDLE"
+          if [ -n "$SOURCE_BUNDLE" ] || [ -n "$SOURCE_PART" ]; then
             rm -rf .build-hz
             mkdir -p .build-hz
-            base64 -d "$SOURCE_BUNDLE" > .build-hz/source.tgz
+            if [ -n "$SOURCE_BUNDLE" ]; then
+              echo "Compilando a partir de $SOURCE_BUNDLE"
+              base64 -d "$SOURCE_BUNDLE" > .build-hz/source.tgz
+            else
+              SOURCE_DIR="$(dirname "$SOURCE_PART")"
+              echo "Compilando a partir das partes em $SOURCE_DIR"
+              cat "$SOURCE_DIR"/source-part-*.b64 | base64 -d > .build-hz/source.tgz
+            fi
             tar -xzf .build-hz/source.tgz -C .build-hz
             cd .build-hz
             GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../Horizonte_AFK.exe .
