@@ -1,0 +1,70 @@
+name: Promover Horizonte AFK 1.6.15 beta1
+on:
+  push:
+    branches: [publish-1.6.15-beta.1]
+    paths:
+      - '.github/workflows/promote-1.6.15-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL_B64: 'aHR0cHM6Ly9zZG1udHByYnJhemlsc291dGgub2FpdXNlcmNvbnRlbnQuY29tL2ZpbGVzLzAwMDAwMDAwLTM1ZTAtODIwZS05NzAxLTBiMWU4N2VjNTkxOC9yYXc/c2U9MjAyNi0wOS0wNlQxNyUzQTE5JTNBMDVaJnNwPXImc3Y9MjAyNi0wMi0wNiZzcj1iJnNjaWQ9OGQyZWJlNTEtYmZmMC01NjQ5LTk5ZDktZThmNWM5N2JjYjBmJnNrb2lkPTY4ZjM3ZmE3LTRlMDgtNDc4Yi05M2YzLWM3MmQ1NjNhMGFiMyZza3RpZD1hNDhjY2E1Ni1lNmRhLTQ4NGUtYTgxNC05Yzg0OTY1MmJjYjMmc2t0PTIwMjYtMDktMDZUMTElM0EzMyUzQTQyWiZza2U9MjAyNi0wOS0wN1QxMSUzQTMzJTNBNDJaJnNrcz1iJnNrdj0yMDI2LTAyLTA2JnNpZz1Ec1ZKJTJCOEozNVlnclNuQS9ldnpCRCUyQllwNTkyRDk4TG81NzRXNDk3T3pmQSUzRA=='
+      VERSION: '1.6.15-beta.1'
+      EXPECTED_SHA: '943090e36bc9dfac27064642b0b49e486f0161de21b44c5a9bc1ef9d51f51555'
+      EXPECTED_SIZE: '2829824'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Baixar e validar build
+        run: |
+          ARTIFACT_URL="$(printf '%s' "$ARTIFACT_URL_B64" | base64 -d)"
+          curl -fL --retry 3 "$ARTIFACT_URL" -o /tmp/hz-artifact.zip
+          rm -rf /tmp/hz-artifact && mkdir -p /tmp/hz-artifact
+          unzip -q /tmp/hz-artifact.zip -d /tmp/hz-artifact
+          test -f "/tmp/hz-artifact/Horizonte_AFK_1.6.15-beta.1.exe"
+          cp "/tmp/hz-artifact/Horizonte_AFK_1.6.15-beta.1.exe" /tmp/Horizonte_AFK.exe
+          python3 - <<'PY'
+          import hashlib,os
+          p='/tmp/Horizonte_AFK.exe'; d=open(p,'rb').read()
+          assert d[:2]==b'MZ'
+          assert len(d)==int(os.environ['EXPECTED_SIZE'])
+          assert hashlib.sha256(d).hexdigest()==os.environ['EXPECTED_SHA']
+          print('Build validada:',len(d),hashlib.sha256(d).hexdigest())
+          PY
+      - name: Preparar atualização oficial
+        run: |
+          git checkout main
+          git pull --ff-only origin main
+          cp /tmp/Horizonte_AFK.exe Horizonte_AFK.exe
+          python3 - <<'PY'
+          import json,os,datetime,pathlib
+          root=pathlib.Path('.'); v=os.environ['VERSION']; sha=os.environ['EXPECTED_SHA']; size=int(os.environ['EXPECTED_SIZE'])
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z')
+          url=f'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v{v}/Horizonte_AFK.exe'
+          changes=[
+            'Corrigida a restauração 24/7 que podia anexar a primeira sessão da Discloud mesmo quando ela pertencia a outro nick.',
+            'O launcher agora restaura somente uma sessão cujo nick, servidor e porta correspondam exatamente aos campos atuais.',
+            'Ao conectar na nuvem, o nick digitado é congelado antes da reconciliação de contas e enviado sem ser substituído por perfil antigo.',
+            'Se a Cloud devolver uma sessão existente com outro nick, o launcher cria uma identidade de sessão isolada e tenta novamente, sem assumir a conta errada.',
+            'O status seguro passa a registrar Nick solicitado e Nick enviado para facilitar a conferência sem expor senha ou 2FA.',
+            'Modo local, Centro de Contas, chat, dialogs, multi-servidor e persistência 24/7 foram preservados.'
+          ]
+          candidate={'product':'Horizonte AFK','channel':'beta','version':v,'published_at':now,'available':True,'mandatory':False,'download_url':url,'sha256':sha,'size_bytes':size,'encoding':'none','notes':'Correção de identidade do nick no 24/7: sessões antigas de outra conta não são mais anexadas silenciosamente. Build validada.','min_supported_version':'1.2.0'}
+          root.joinpath('release-candidate.json').write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          path=root/'release-changelog.json'; changelog=json.loads(path.read_text(encoding='utf-8-sig'))
+          versions=[x for x in changelog.get('versions',[]) if x.get('version')!=v]
+          versions.insert(0,{'version':v,'date':'2026-09-06','changes':changes})
+          changelog['channel']='beta'; changelog['versions']=versions
+          path.write_text(json.dumps(changelog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          notes='# Horizonte AFK 1.6.15-beta.1\n\nCorreção da identidade do nick nas sessões 24/7.\n\n'+''.join(f'- {x}\n' for x in changes)+f'\nSHA-256: {sha}\n'
+          root.joinpath('RELEASE_NOTES.md').write_text(notes,encoding='utf-8')
+          root.joinpath('SHA256SUMS.txt').write_text(f'{sha}  Horizonte_AFK.exe\n',encoding='utf-8')
+          PY
+          git config user.name 'Horizonte AFK Publisher'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe release-candidate.json release-changelog.json RELEASE_NOTES.md SHA256SUMS.txt
+          git commit -m 'release: Horizonte AFK 1.6.15-beta.1'
+          git push origin main
