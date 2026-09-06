@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.6-beta.4",
+      "date": "2026-09-06",
+      "changes": [
+        "Modo 24/7 passa a usar o mesmo runmode Still do modo local.",
+        "O EXE só permite conexão Cloud quando o backend confirma manual_spawn_flow=true.",
+        "Login, 2FA e demais dialogs devem ocorrer antes do spawn, como na conexão local.",
+        "Mantidos console/chat puro, diagnóstico de IP e fail-safe do modo local."
+      ]
+    },
+    {
       "version": "1.6.6-beta.3",
       "date": "2026-09-06",
       "changes": [
