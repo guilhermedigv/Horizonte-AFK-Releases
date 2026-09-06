@@ -67,7 +67,7 @@ jobs:
           (payload/'hz_icon.png').write_bytes(exact(b'\x89PNG\r\n\x1a\n',32380,'5f96d07d9af05c40f1f4700136438311b2b9204e6e6a0e4475e4441111fe317a'))
           PY
 
-      - name: Compilar e validar binário final
+      - name: Compilar candidato reproduzível
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
@@ -78,9 +78,24 @@ jobs:
             if($LASTEXITCODE-ne0){throw 'Compilação falhou'}
             $h=(Get-FileHash Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
             $s=(Get-Item Horizonte_AFK.exe).Length
-            if($h-ne'037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440'){throw ('Hash divergente: '+$h)}
-            if($s-ne2840576){throw ('Tamanho divergente: '+$s)}
+            Write-Host ('PUBLIC_CANDIDATE_SHA256=' + $h)
+            Write-Host ('PUBLIC_CANDIDATE_SIZE=' + $s)
           } finally { Pop-Location }
+
+      - name: Enviar candidato para comparação
+        uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-1.5.0-public-candidate
+          path: build/Horizonte_AFK.exe
+          compression-level: 6
+
+      - name: Validar igualdade com CI privado
+        shell: pwsh
+        run: |
+          $h=(Get-FileHash build/Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $s=(Get-Item build/Horizonte_AFK.exe).Length
+          if($h-ne'037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440'){throw ('Hash divergente: '+$h)}
+          if($s-ne2840576){throw ('Tamanho divergente: '+$s)}
 
       - name: Promover EXE validado
         shell: pwsh
