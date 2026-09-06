@@ -9,6 +9,6 @@
   "sha256": "1ca0d2855f89beca10eba7ca8fbba3e976364a93647996102d8ca1525a06508f",
   "size_bytes": 2822144,
   "encoding": "none",
-  "notes": "Correção do Centro de Contas e ativação das abas Conexão/Configurações com chat seguro do servidor.",
+  "notes": "Correção do Centro de Contas e ativação das abas Conexão/Configurações com chat seguro do servidor. Build validada.",
   "min_supported_version": "1.2.0"
 }
