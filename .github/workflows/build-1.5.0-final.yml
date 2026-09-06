@@ -74,11 +74,11 @@ jobs:
           Push-Location build
           try {
             $env:CGO_ENABLED='0'
-            go build -buildvcs=false -trimpath -ldflags '-s -w -H=windowsgui' -o Horizonte_AFK.exe .
+            go build -buildvcs=false -trimpath -ldflags '-s -w -H=windowsgui -buildid=HorizonteAFK-1.5.0' -o Horizonte_AFK.exe .
             if($LASTEXITCODE-ne0){throw 'Compilação falhou'}
             $h=(Get-FileHash Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
             $s=(Get-Item Horizonte_AFK.exe).Length
-            if($h-ne'12106bf2bbb4287807b527189385c3740d780d596627069a401e15247ecdbea5'){throw ('Hash divergente: '+$h)}
+            if($h-ne'037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440'){throw ('Hash divergente: '+$h)}
             if($s-ne2840576){throw ('Tamanho divergente: '+$s)}
           } finally { Pop-Location }
 
@@ -89,9 +89,9 @@ jobs:
           Copy-Item build/Horizonte_AFK.exe Horizonte_AFK.exe -Force
           @{
             version='1.5.0';
-            sha256='12106bf2bbb4287807b527189385c3740d780d596627069a401e15247ecdbea5';
+            sha256='037fffba05c7f7798d5f3026525bd62559b0428c023f7309d43b1b7351621440';
             size_bytes=2840576;
-            validated_against='private-ci-deterministic-and-public-rebuild'
+            validated_against='private-ci-reproducible-and-public-rebuild'
           } | ConvertTo-Json | Set-Content build-result-1.5.0.json -Encoding utf8
           git config user.name 'Horizonte AFK Builder'
           git config user.email 'actions@users.noreply.github.com'
