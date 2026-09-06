@@ -1,0 +1,105 @@
+name: Promover Horizonte AFK 1.6.7-beta.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.release-v1.6.7-beta.1'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-62f0-820e-986e-e5c22cc7292d/raw?se=2026-09-06T08%3A35%3A34Z&sp=r&sv=2026-02-06&sr=b&scid=b6f6ac83-60f9-556e-95b6-e9aa8dd7e869&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-05T11%3A10%3A26Z&ske=2026-09-06T11%3A10%3A26Z&sks=b&skv=2026-02-06&sig=Y2Eomz2tftnpQtaF4gjWUnfa6kFJJCGiMalOFDTuMS8%3D'
+      ZIP_SHA256: '4d32e216e3ec78f3d9dfb09befe933cc735152435a0d3ec87e605c345cbbf434'
+      EXPECTED_EXE_SHA256: '51991a6e88d2b19eb38db37d44f3a091e6c31930ffa702cef4aefd7d4fc87c0f'
+      EXPECTED_EXE_SIZE: '2956288'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Baixar e validar artefato testado
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 1 "$ARTIFACT_URL" -o /tmp/Horizonte-AFK-1.6.7-beta.1.zip
+          echo "$ZIP_SHA256  /tmp/Horizonte-AFK-1.6.7-beta.1.zip" | sha256sum -c -
+          rm -rf /tmp/hz167b1 && mkdir -p /tmp/hz167b1
+          unzip -q /tmp/Horizonte-AFK-1.6.7-beta.1.zip -d /tmp/hz167b1
+          test -f /tmp/hz167b1/Horizonte_AFK.exe
+          test "$(od -An -tx1 -N2 /tmp/hz167b1/Horizonte_AFK.exe | tr -d ' \n')" = "4d5a"
+          SIZE="$(stat -c%s /tmp/hz167b1/Horizonte_AFK.exe)"
+          SHA="$(sha256sum /tmp/hz167b1/Horizonte_AFK.exe | awk '{print $1}')"
+          test "$SIZE" = "$EXPECTED_EXE_SIZE"
+          test "$SHA" = "$EXPECTED_EXE_SHA256"
+          echo "EXE_SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "EXE_SHA256=$SHA" >> "$GITHUB_ENV"
+
+      - name: Preparar candidato v1.6.7-beta.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/hz167b1/Horizonte_AFK.exe ./Horizonte_AFK.exe
+          printf '%s  Horizonte_AFK.exe\n' "$EXE_SHA256" > SHA256SUMS.txt
+          python3 - <<'PY'
+          import json, os
+          meta={
+            'product':'Horizonte AFK',
+            'channel':'beta',
+            'version':'1.6.7-beta.1',
+            'published_at':'2026-09-06T08:32:00.000Z',
+            'available':True,
+            'mandatory':False,
+            'download_url':'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.7-beta.1/Horizonte_AFK.exe',
+            'sha256':os.environ['EXE_SHA256'],
+            'size_bytes':int(os.environ['EXE_SIZE']),
+            'encoding':'none',
+            'notes':'Adiciona Centro de Contas com sessões locais/nuvem, login rápido aprendido e persistência das sessões Cloud ao fechar o EXE.',
+            'min_supported_version':'1.2.0'
+          }
+          open('release-candidate.json','w',encoding='utf-8').write(json.dumps(meta,ensure_ascii=False,indent=2)+'\n')
+          p='release-changelog.json'
+          try: d=json.load(open(p,encoding='utf-8-sig'))
+          except Exception: d={'channel':'beta','versions':[]}
+          d['channel']='beta'
+          d['versions']=[v for v in d.get('versions',[]) if v.get('version')!='1.6.7-beta.1']
+          d['versions'].insert(0,{
+            'version':'1.6.7-beta.1','date':'2026-09-06','changes':[
+              'Nova aba CONTAS na lateral com um UCP simples de contas e sessões.',
+              'Cada perfil salvo oferece conexão LOCAL ou 24/7 NA NUVEM.',
+              'Suporte a várias contas e visualização de sessões ativas/offline.',
+              'Após o primeiro login manual, respostas de dialogs podem ser lembradas para login rápido.',
+              'Dados de login rápido ficam protegidos pelo Windows; na Cloud ficam dentro do armazenamento criptografado.',
+              'Sessões 24/7 não são encerradas ao fechar completamente o Horizonte AFK; desconexão passa a ser explícita pelo Centro de Contas.',
+              'Mantém manual_spawn, parser de dialogs, modo local e fail-safe das betas anteriores.'
+            ]})
+          open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+          cat > RELEASE_NOTES.md <<EOF
+          # Horizonte AFK 1.6.7-beta.1
+
+          Centro de Contas e sessões persistentes.
+
+          - Nova opção CONTAS na barra lateral.
+          - Lista perfis salvos e sessões online/offline.
+          - Botões para conectar LOCAL ou 24/7 NA NUVEM.
+          - Suporte a múltiplas contas.
+          - Primeiro login continua manual; depois o launcher pode lembrar respostas dos dialogs para login rápido.
+          - Respostas lembradas ficam protegidas com DPAPI no Windows e criptografadas no armazenamento Cloud.
+          - Fechar completamente o EXE não manda mais encerrar a sessão 24/7; para derrubar a sessão use DESCONECTAR no Centro de Contas.
+          - Mantém o fluxo manual_spawn/login/2FA e o fail-safe do modo local.
+
+          SHA-256: $EXE_SHA256
+          EOF
+
+      - name: Promover somente após validações
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Horizonte AFK Release Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git add Horizonte_AFK.exe SHA256SUMS.txt release-candidate.json release-changelog.json RELEASE_NOTES.md
+          git commit -m 'Promove Horizonte AFK v1.6.7-beta.1 validado'
+          git push
