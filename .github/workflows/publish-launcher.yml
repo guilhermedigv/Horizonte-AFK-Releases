@@ -6,6 +6,8 @@ on:
     paths:
       - "Horizonte_AFK.exe"
       - "Horizonte_AFK_UPDATE_*.exe"
+      - "build/v*/source.tgz.b64"
+      - ".github/workflows/publish-launcher.yml"
 
 permissions:
   contents: write
@@ -17,16 +19,27 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Preparar executável publicado
+      - name: Preparar ou compilar executável
         shell: bash
         run: |
           set -euo pipefail
-          SRC="Horizonte_AFK.exe"
+
+          SOURCE_BUNDLE="$(find build -type f -path '*/source.tgz.b64' -print 2>/dev/null | sort -V | tail -n 1 || true)"
           CANDIDATE="$(find . -maxdepth 1 -type f -name 'Horizonte_AFK_UPDATE_*.exe' -print -quit || true)"
-          if [ -n "$CANDIDATE" ]; then
-            SRC="${CANDIDATE#./}"
-            cp -f "$SRC" Horizonte_AFK.exe
+
+          if [ -n "$SOURCE_BUNDLE" ]; then
+            echo "Compilando a partir de $SOURCE_BUNDLE"
+            rm -rf .build-hz
+            mkdir -p .build-hz
+            base64 -d "$SOURCE_BUNDLE" > .build-hz/source.tgz
+            tar -xzf .build-hz/source.tgz -C .build-hz
+            cd .build-hz
+            GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../Horizonte_AFK.exe .
+            cd ..
+          elif [ -n "$CANDIDATE" ]; then
+            cp -f "${CANDIDATE#./}" Horizonte_AFK.exe
           fi
+
           test -f Horizonte_AFK.exe
           test "$(head -c 2 Horizonte_AFK.exe)" = "MZ"
 
@@ -53,7 +66,7 @@ jobs:
           data['encoding'] = 'none'
           data.pop('parts', None)
           data.pop('part_encoding', None)
-          data['notes'] = 'Build de teste publicada para validar o auto-update do Horizonte AFK.'
+          data['notes'] = 'Versão estável publicada automaticamente. O mesmo Horizonte_AFK.exe é atualizado e reiniciado com validação SHA-256.'
           p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           PY
 
