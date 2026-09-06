@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.26-beta.1",
-  "published_at": "2026-09-06T23:08:38Z",
+  "version": "1.6.27-beta.1",
+  "published_at": "2026-09-06T23:25:10Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.26-beta.1/Horizonte_AFK.exe",
-  "sha256": "ff87f216efc933db84553c7d35aaf3c57fc1b91adcad8993a53fbf7f36df7275",
-  "size_bytes": 5834240,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.27-beta.1/Horizonte_AFK.exe",
+  "sha256": "08cf29dbb630407cea829161a9cbd2dd0d87df3f159b661d4348beff1afada16",
+  "size_bytes": 5836288,
   "encoding": "none",
-  "notes": "Troca a resposta de dialogs para IPC dedicado por arquivo com ACK do núcleo, removendo a disputa com a UI/stdin nativos do RakSAMP. Mantém as otimizações de polling e os demais recursos.",
+  "notes": "Corrige o loop de senha/login: confirmação por avanço real do diálogo, ACK com tamanho do conteúdo sem expor senha, fim da resposta automática concorrente no multi-servidor e transporte Windows-1252.",
   "min_supported_version": "1.2.0"
 }
