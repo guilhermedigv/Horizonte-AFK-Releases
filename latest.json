@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.47-beta.1",
-  "published_at": "2026-09-07T06:05:10Z",
+  "version": "1.6.48-beta.1",
+  "published_at": "2026-09-07T15:34:39Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.47-beta.1/Horizonte_AFK.exe",
-  "sha256": "8068e011a890ac45541266d63870fa510239252d8ba1ffbc1a0df0b72ffe8939",
-  "size_bytes": 5907968,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe",
+  "sha256": "6503925d26779557bc834e53bc96c886b6192e23ca54ef9eefb638ec9f4127b6",
+  "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "Corrige helpers Cloud de pagina ausentes e adiciona auditoria contra comandos HZ indefinidos.",
+  "notes": "ServerClosed/restart autologin: dialog responses learned per account and replayed by Cloud v0.5.9 with encrypted persistence and retry-loop protection.",
   "min_supported_version": "1.2.0"
 }
