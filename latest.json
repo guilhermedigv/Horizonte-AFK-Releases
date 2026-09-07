@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.42-beta.1",
-  "published_at": "2026-09-07T04:43:28Z",
+  "version": "1.6.43-beta.1",
+  "published_at": "2026-09-07T04:53:42Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.42-beta.1/Horizonte_AFK.exe",
-  "sha256": "cddd9391bd32c8811cd72410655e7899e4856f86f141699504743338b2288b9a",
-  "size_bytes": 5893632,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.43-beta.1/Horizonte_AFK.exe",
+  "sha256": "a8ad1a14edcd02dde7ab1e309de49d4dbe6179205e410efc90028d704d693bee",
+  "size_bytes": 5896704,
   "encoding": "none",
-  "notes": "Cada pagina agora controla uma conta independente, com servidor, nick, processo e dialogs proprios; o spawn espera confirmacao real do servidor.",
+  "notes": "As abas agora sao paginas independentes: nova conta abre vazia e cada pagina mantem seu proprio nick, servidor, status, tempo e log.",
   "min_supported_version": "1.2.0"
 }
