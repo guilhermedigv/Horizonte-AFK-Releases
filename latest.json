@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.34-beta.1",
-  "published_at": "2026-09-07T01:13:06Z",
+  "version": "1.6.35-beta.1",
+  "published_at": "2026-09-07T01:35:10Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.34-beta.1/Horizonte_AFK.exe",
-  "sha256": "eac4c25b7b7334c2f8dbdf1f783800e237b7ab7c41a68c91052f3a035b84607a",
-  "size_bytes": 5858816,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.35-beta.1/Horizonte_AFK.exe",
+  "sha256": "94d78e487ffb38067ad5c3410310ba1fdd8b1709344c2cd0c61ec567c8966902",
+  "size_bytes": 5862400,
   "encoding": "none",
-  "notes": "Corrige a UI quebrada da 1.6.33 mantendo respostas de dialog diretas por sessão, sem relay pelo painel principal.",
+  "notes": "Multi-servidor passa a responder login, senha, 2FA e spawn pelo próprio dialog nativo oculto do RakSAMP, controlado pela UI limpa do Horizonte, sem relay de senha.",
   "min_supported_version": "1.2.0"
 }
