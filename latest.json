@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.46-beta.1",
-  "published_at": "2026-09-07T05:56:30Z",
+  "version": "1.6.47-beta.1",
+  "published_at": "2026-09-07T06:05:10Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.46-beta.1/Horizonte_AFK.exe",
-  "sha256": "2429f86a25ed91f3416f42eed555c2141d62017e66ce6d8496b10b60d3fd81d7",
-  "size_bytes": 5906432,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.47-beta.1/Horizonte_AFK.exe",
+  "sha256": "8068e011a890ac45541266d63870fa510239252d8ba1ffbc1a0df0b72ffe8939",
+  "size_bytes": 5907968,
   "encoding": "none",
-  "notes": "Estabilizacao global do modo 100% 24/7: sessoes Cloud independentes por pagina, identidade exata, desconexao por pagina e persistencia correta das abas.",
+  "notes": "Corrige helpers Cloud de pagina ausentes e adiciona auditoria contra comandos HZ indefinidos.",
   "min_supported_version": "1.2.0"
 }
