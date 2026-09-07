@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.31-beta.1",
-  "published_at": "2026-09-07T00:17:49Z",
+  "version": "1.6.32-beta.1",
+  "published_at": "2026-09-07T00:27:49Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.31-beta.1/Horizonte_AFK.exe",
-  "sha256": "53ccd0f0d88faf4db10059f1f65a8032f6a065607d9935cb4be1645e4f8352a4",
-  "size_bytes": 5843456,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.32-beta.1/Horizonte_AFK.exe",
+  "sha256": "c06087c3c23e17fe3ccd8d67d07e14a211492f7f80d9b92008d3ad685a6af951",
+  "size_bytes": 5843968,
   "encoding": "none",
-  "notes": "Corrige o loop infinito da senha e a transição do login para o próximo diálogo real, incluindo a seleção de spawn.",
+  "notes": "Corrige a corrida interna que fazia o RakSAMP perder respostas de dialogs, repetir a senha e impedir a transição para o spawn.",
   "min_supported_version": "1.2.0"
 }
