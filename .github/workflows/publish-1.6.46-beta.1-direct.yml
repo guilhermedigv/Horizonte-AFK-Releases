@@ -1,0 +1,63 @@
+name: Publicar Horizonte AFK 1.6.46 beta1 direct
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.46-beta.1-direct.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-7288-820e-927c-0b56c040b53a/raw?se=2026-09-07T06%3A01%3A00Z&sp=r&sv=2026-02-06&sr=b&scid=64711ad0-3823-5805-84c1-9231f734d20b&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T10%3A10%3A27Z&ske=2026-09-07T10%3A10%3A27Z&sks=b&skv=2026-02-06&sig=e/HPbH%2BUwSKJHb2NoVchSTJk9G49FxSL0Tkle6MGwQc%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5906432'
+          test "$SHA" = '2429f86a25ed91f3416f42eed555c2141d62017e66ce6d8496b10b60d3fd81d7'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Varredura global e estabilização do modo 100% 24/7. Cada página agora cria e valida diretamente sua própria sessão Cloud, sem reutilizar o conector global antigo. A associação de sessão exige identidade exata de nick + servidor + porta, impedindo que IDs antigos anexem a conta errada. O botão Desconectar encerra somente a página selecionada. Estado visual/log de cada aba passa a ser persistido corretamente. O limite da interface foi alinhado para até 5 contas 24/7. O modo local continua removido.'
+          if gh release view 'v1.6.46-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.46-beta.1' Horizonte_AFK.exe --clobber
+            gh release edit 'v1.6.46-beta.1' --notes "$NOTES"
+          else
+            gh release create 'v1.6.46-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.46-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.46-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.46-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Estabilizacao global do modo 100% 24/7: sessoes Cloud independentes por pagina, identidade exata, desconexao por pagina e persistencia correta das abas.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.46-beta.1' || true
+          git push
