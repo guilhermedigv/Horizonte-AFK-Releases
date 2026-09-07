@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.35 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.35-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-2eec-820e-803c-54dc7c9b78de/raw?se=2026-09-07T01%3A39%3A29Z&sp=r&sv=2026-02-06&sr=b&scid=4a5db4c3-40e0-53c1-b2f3-90bbff5a5dd2&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-07T00%3A16%3A55Z&ske=2026-09-08T00%3A16%3A55Z&sks=b&skv=2026-02-06&sig=avWnfa7iwRKpEWiOkICYEa6mrbDf3oH1ulkDG/bzkeQ%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5862400'
+          test "$SHA" = '94d78e487ffb38067ad5c3410310ba1fdd8b1709344c2cd0c61ec567c8966902'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Correção estrutural do loop de senha do multi-servidor. A v1.6.34 ainda enviava login/senha pelo arquivo hz_dialog_response.txt, embora a janela fosse independente. A v1.6.35 volta a usar o caminho que avançou corretamente na v1.6.33: cada sessão mantém o dialog Win32 nativo do RakSAMP ativo e oculto, e a janela limpa do Horizonte apenas controla os Edit/List/Button reais desse dialog. Assim o clique executa SAMPDlgProc -> sendDialogResponse diretamente no próprio RakSAMP, sem retransmitir senha por state.json, command.json, stdin ou arquivo de resposta. O núcleo agora também implementa TABLIST/TABLIST_HEADERS (styles 4/5) no dialog nativo oculto para permitir 2FA/spawn pelo mesmo caminho. A janela principal e os dialogs crus do RakSAMP ficam ocultos. Multi-servidor simultâneo, Cloud 24/7, contas e updater foram preservados.'
+          if gh release view 'v1.6.35-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.35-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.35-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.35-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.35-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.35-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Multi-servidor passa a responder login, senha, 2FA e spawn pelo próprio dialog nativo oculto do RakSAMP, controlado pela UI limpa do Horizonte, sem relay de senha.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.35-beta.1' || true
+          git push
