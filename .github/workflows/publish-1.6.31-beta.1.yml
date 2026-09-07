@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.31 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.31-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-8830-820e-bfca-85f6edb7ab51/raw?se=2026-09-07T00%3A22%3A27Z&sp=r&sv=2026-02-06&sr=b&scid=3a13029e-16ad-5e81-80ba-98d7bfebc587&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T21%3A30%3A48Z&ske=2026-09-07T21%3A30%3A48Z&sks=b&skv=2026-02-06&sig=lIDSCpnm4PKeM0rzeLu9KVAgvLACEIC3EwuG%2BPWLays%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5843456'
+          test "$SHA" = '53ccd0f0d88faf4db10059f1f65a8032f6a065607d9935cb4be1645e4f8352a4'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a repetição infinita do diálogo de senha no multi-servidor. Depois que o núcleo RakSAMP confirma o envio da senha, o espelho local daquele diálogo é encerrado imediatamente e o launcher passa a aguardar um novo diálogo real do servidor. O mesmo hash antigo não é mais reaberto após timeout; se a senha for realmente recusada, o servidor enviará uma nova sequência de diálogo, que continua aparecendo normalmente. Isso permite que o fluxo avance para seleção de spawn sem ressuscitar o login anterior. Multi-servidor simultâneo, Cloud 24/7, contas, updater e layout foram preservados.'
+          if gh release view 'v1.6.31-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.31-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.31-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.31-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.31-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.31-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige o loop infinito da senha e a transição do login para o próximo diálogo real, incluindo a seleção de spawn.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.31-beta.1' || true
+          git push
