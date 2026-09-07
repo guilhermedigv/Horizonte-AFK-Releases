@@ -1,0 +1,20 @@
+name: Diagnose 1.6.38 patch
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diag-1.6.38-patch.yml'
+permissions:
+  contents: read
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set -euo pipefail
+          wc -c .release-staging/v1.6.38.patch.zst.b64
+          base64 -d .release-staging/v1.6.38.patch.zst.b64 > patch.zst
+          wc -c patch.zst
+          sha256sum patch.zst
+          zstd --list patch.zst || true
