@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.29-beta.1",
-  "published_at": "2026-09-06T23:51:10Z",
+  "version": "1.6.30-beta.1",
+  "published_at": "2026-09-07T00:05:43Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.29-beta.1/Horizonte_AFK.exe",
-  "sha256": "401b68fbc957e63454141b57b26cf6593d65f0410eaf9b2b5cab8af47063c095",
-  "size_bytes": 5841920,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.30-beta.1/Horizonte_AFK.exe",
+  "sha256": "727a2be299b838ade2663a0b2941f8190c1e3b3e5745d29b163c080e0a2142d5",
+  "size_bytes": 5842944,
   "encoding": "none",
-  "notes": "Separa ACK do RakSAMP da transição real do servidor no multi-servidor e impede encerramento falso por leitura transitória do state.json.",
+  "notes": "Restaura o multi-servidor simultâneo e corrige o travamento dos botões de dialogs no modo multi-servidor.",
   "min_supported_version": "1.2.0"
 }
