@@ -1,0 +1,63 @@
+name: Publicar Horizonte AFK 1.6.38 beta1 retry
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.38-beta.1-retry.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruir build validada
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.37-beta.1/Horizonte_AFK.exe' -o base137.exe
+          test "$(stat -c '%s' base137.exe)" = '5871616'
+          test "$(sha256sum base137.exe | cut -d' ' -f1)" = '2d0962473e45f1896e5f62c1fc4028cf4374ffb917b6e627a0dfc7f04371001d'
+          cat .release-staging/v1.6.38.patch.00.b64 .release-staging/v1.6.38.patch.01.b64 .release-staging/v1.6.38.patch.02.b64 .release-staging/v1.6.38.patch.03.b64 .release-staging/v1.6.38.patch.04.b64 | base64 -d > patch.zst
+          test "$(stat -c '%s' patch.zst)" = '9169'
+          test "$(sha256sum patch.zst | cut -d' ' -f1)" = '33532b32b8b3e721f14a4a712893cf800970cd5ac16dfc274b3b2a50194d9831'
+          zstd -d -f --patch-from=base137.exe patch.zst -o Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5872640'
+          test "$SHA" = '8ae1088a4b307d192461a8bf6f4c6f5e8b229cd76efa8fd3614201e1caee8860'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige o bloqueio da interface com uma sessao 24/7 ativa: servidor, nick e botao principal continuam disponiveis para adicionar contas locais sem derrubar a nuvem. A primeira conta local com Cloud ativo nasce como sessao independente e todas as contas locais ficam gerenciaveis pela aba Contas.'
+          if gh release view 'v1.6.38-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.38-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.38-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.38-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.38-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.38-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Sessao 24/7 ativa nao bloqueia mais servidor, nick e conexao local aditiva; novas contas ficam independentes e gerenciaveis em Contas.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git rm -f .release-staging/v1.6.38.patch.00.b64 .release-staging/v1.6.38.patch.01.b64 .release-staging/v1.6.38.patch.02.b64 .release-staging/v1.6.38.patch.03.b64 .release-staging/v1.6.38.patch.04.b64 || true
+          git rm -f .release-staging/v1.6.38.patch.zst.b64 || true
+          git commit -m 'release: v1.6.38-beta.1' || true
+          git push
