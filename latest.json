@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.37-beta.1",
-  "published_at": "2026-09-07T02:29:12Z",
+  "version": "1.6.38-beta.1",
+  "published_at": "2026-09-07T02:50:30Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.37-beta.1/Horizonte_AFK.exe",
-  "sha256": "2d0962473e45f1896e5f62c1fc4028cf4374ffb917b6e627a0dfc7f04371001d",
-  "size_bytes": 5871616,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.38-beta.1/Horizonte_AFK.exe",
+  "sha256": "8ae1088a4b307d192461a8bf6f4c6f5e8b229cd76efa8fd3614201e1caee8860",
+  "size_bytes": 5872640,
   "encoding": "none",
-  "notes": "Conexao solo aditiva: o seletor permanece liberado para adicionar outras contas sem desconectar as ja ativas, com gerenciamento pelo Centro de Contas.",
+  "notes": "Sessao 24/7 ativa nao bloqueia mais servidor, nick e conexao local aditiva; novas contas ficam independentes e gerenciaveis em Contas.",
   "min_supported_version": "1.2.0"
 }
