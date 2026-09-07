@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.30 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.30-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-2308-820e-b433-50805c6b1b78/raw?se=2026-09-07T00%3A10%3A14Z&sp=r&sv=2026-02-06&sr=b&scid=ed31a7d7-21c7-5340-84ff-2195246ac366&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T10%3A44%3A14Z&ske=2026-09-07T10%3A44%3A14Z&sks=b&skv=2026-02-06&sig=PanSNEx1b6R3ZrFvU1YBWoAD%2BckpeRL5dPpCvDJM7SM%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5842944'
+          test "$SHA" = '727a2be299b838ade2663a0b2941f8190c1e3b3e5745d29b163c080e0a2142d5'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Restaura o multi-servidor simultâneo: todos os servidores selecionados iniciam juntos, como no comportamento antigo, em vez de aguardar o login anterior terminar. Corrige também os botões Logar/Fechar que podiam ficar desativados indefinidamente. Cada sessão usa um curto bloqueio apenas contra clique duplo; depois da resposta, o painel libera imediatamente os demais dialogs. A conclusão de uma sessão em segundo plano não fecha mais o diálogo visível de outra sessão. O servidor já coberto pelo modo 24/7 na nuvem continua sem abrir uma conexão local duplicada. Contas, Cloud 24/7, updater, layout e otimizações anteriores foram preservados.'
+          if gh release view 'v1.6.30-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.30-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.30-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.30-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.30-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.30-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Restaura o multi-servidor simultâneo e corrige o travamento dos botões de dialogs no modo multi-servidor.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.30-beta.1' || true
+          git push
