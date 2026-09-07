@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.36-beta.1",
-  "published_at": "2026-09-07T02:01:00Z",
+  "version": "1.6.37-beta.1",
+  "published_at": "2026-09-07T02:29:12Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.36-beta.1/Horizonte_AFK.exe",
-  "sha256": "8007948ebb5e471cea1762114ca14dce1875097ca14395c0ca56d6c1e250704c",
-  "size_bytes": 5872640,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.37-beta.1/Horizonte_AFK.exe",
+  "sha256": "2d0962473e45f1896e5f62c1fc4028cf4374ffb917b6e627a0dfc7f04371001d",
+  "size_bytes": 5871616,
   "encoding": "none",
-  "notes": "Conexão local unificada no botão principal, com seleção de um ou vários servidores e nick independente salvo por servidor no Centro de Contas.",
+  "notes": "Conexao solo aditiva: o seletor permanece liberado para adicionar outras contas sem desconectar as ja ativas, com gerenciamento pelo Centro de Contas.",
   "min_supported_version": "1.2.0"
 }
