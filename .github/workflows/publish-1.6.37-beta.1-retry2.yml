@@ -1,0 +1,59 @@
+name: Publicar Horizonte AFK 1.6.37 beta1 retry2
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.37-beta.1-retry2.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar executavel validado
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.36-beta.1/Horizonte_AFK.exe' -o base.exe
+          test "$(stat -c '%s' base.exe)" = '5872640'
+          test "$(sha256sum base.exe | cut -d' ' -f1)" = '8007948ebb5e471cea1762114ca14dce1875097ca14395c0ca56d6c1e250704c'
+          cat .release-staging/v1.6.37.zst.b64.00 .release-staging/v1.6.37.zst.b64.01 .release-staging/v1.6.37.zst.b64.02 .release-staging/v1.6.37.zst.b64.03 | base64 -d > patch.zst
+          zstd -d -f --patch-from=base.exe patch.zst -o Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5871616'
+          test "$SHA" = '2d0962473e45f1896e5f62c1fc4028cf4374ffb917b6e627a0dfc7f04371001d'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Conexao solo aditiva: escolha um servidor e nick no painel normal. Depois de conectar, o seletor continua liberado para adicionar outra conta sem encerrar a anterior. As sessoes locais aparecem no Centro de Contas como LOCAL ATIVO e podem ser desconectadas individualmente por la. O botao separado de multi-servidor permanece removido.'
+          if gh release view 'v1.6.37-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.37-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.37-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.37-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.37-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.37-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Conexao solo aditiva: o seletor permanece liberado para adicionar outras contas sem desconectar as ja ativas, com gerenciamento pelo Centro de Contas.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.37-beta.1' || true
+          git push
