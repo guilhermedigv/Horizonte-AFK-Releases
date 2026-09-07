@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.34 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.34-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-8994-820e-a435-04827ab6a9c5/raw?se=2026-09-07T01%3A17%3A29Z&sp=r&sv=2026-02-06&sr=b&scid=79b72c24-34ca-52ae-9cd6-499e8668bbe3&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T13%3A27%3A48Z&ske=2026-09-07T13%3A27%3A48Z&sks=b&skv=2026-02-06&sig=uMwjf93KZaiwfAN0rDb8mhtA7gAO1/AOkeBMvHbOOpI%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5858816'
+          test "$SHA" = 'eac4c25b7b7334c2f8dbdf1f783800e237b7ab7c41a68c91052f3a035b84607a'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a regressão visual da 1.6.33 sem voltar ao relay que causava senha infinita. No multi-servidor, cada sessão continua respondendo diretamente ao seu próprio RakSAMP, mas agora o dialog é exibido por uma janela limpa do Horizonte AFK. O painel principal não retransmite senha/login/2FA/spawn. Códigos de cor SA-MP são removidos, TABLIST e TABLIST_HEADERS usam o renderizador integrado já compatível com styles 4/5, a janela bruta principal do RakSAMP volta a ficar oculta e os dialogs são posicionados por servidor para reduzir sobreposição. Multi-servidor simultâneo, Cloud 24/7, contas, updater e modo local foram preservados.'
+          if gh release view 'v1.6.34-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.34-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.34-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.34-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.34-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.34-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige a UI quebrada da 1.6.33 mantendo respostas de dialog diretas por sessão, sem relay pelo painel principal.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.34-beta.1' || true
+          git push
