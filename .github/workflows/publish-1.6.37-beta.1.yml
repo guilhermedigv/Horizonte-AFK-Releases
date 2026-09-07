@@ -1,0 +1,79 @@
+name: Publicar Horizonte AFK 1.6.37 beta1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.37-beta.1.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruir build validada
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.36-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK_1.6.36.exe
+          test "$(stat -c '%s' Horizonte_AFK_1.6.36.exe)" = '5872640'
+          test "$(sha256sum Horizonte_AFK_1.6.36.exe | awk '{print $1}')" = '8007948ebb5e471cea1762114ca14dce1875097ca14395c0ca56d6c1e250704c'
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,gzip,struct
+          old=Path('Horizonte_AFK_1.6.36.exe').read_bytes()
+          raw=gzip.decompress(base64.b64decode(Path('.release-staging/v1.6.37-beta.1.delta.b64').read_text().strip()))
+          if raw[:4] != b'HZD1': raise SystemExit('delta header invalid')
+          new_size,op_count=struct.unpack_from('<QI',raw,4)
+          pos=16
+          out=bytearray()
+          for _ in range(op_count):
+              t=raw[pos:pos+1]; pos+=1
+              if t==b'C':
+                  off,length=struct.unpack_from('<II',raw,pos); pos+=8
+                  out += old[off:off+length]
+              elif t==b'D':
+                  length=struct.unpack_from('<I',raw,pos)[0]; pos+=4
+                  out += raw[pos:pos+length]; pos+=length
+              else: raise SystemExit('delta opcode invalid')
+          if len(out)!=new_size: raise SystemExit(f'delta output size {len(out)} != {new_size}')
+          Path('Horizonte_AFK.exe').write_bytes(out)
+          PY
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | awk '{print $1}')
+          test "$SIZE" = '5871616'
+          test "$SHA" = '2d0962473e45f1896e5f62c1fc4028cf4374ffb917b6e627a0dfc7f04371001d'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Fluxo local aditivo: conectar voltou a ser solo e direto pelo servidor/nick escolhidos no painel. Depois da primeira conta conectar, botão, nick e servidores continuam liberados. Uma nova conexão não encerra as anteriores; ela é adicionada como outra sessão local e aparece no Centro de Contas como LOCAL ATIVO, onde pode ser gerenciada individualmente. O botão separado de multi-servidor permanece removido. Contas adicionais preservam o bridge nativo de dialogs para login, senha, 2FA e spawn.'
+          if gh release view 'v1.6.37-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.37-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.37-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.37-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.37-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.37-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Conexão solo aditiva: o seletor permanece liberado para adicionar outras contas sem desconectar as já ativas, com gerenciamento pelo Centro de Contas.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git rm -f .release-staging/v1.6.37-beta.1.delta.b64
+          git commit -m 'release: v1.6.37-beta.1' || true
+          git push
