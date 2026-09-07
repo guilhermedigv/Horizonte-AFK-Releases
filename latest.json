@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.41-beta.1",
-  "published_at": "2026-09-07T04:20:03Z",
+  "version": "1.6.42-beta.1",
+  "published_at": "2026-09-07T04:43:28Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.41-beta.1/Horizonte_AFK.exe",
-  "sha256": "c21458263f844198bf3cecd7ad11bcca1447db524382b262fa274c87fba0c8dc",
-  "size_bytes": 5873664,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.42-beta.1/Horizonte_AFK.exe",
+  "sha256": "cddd9391bd32c8811cd72410655e7899e4856f86f141699504743338b2288b9a",
+  "size_bytes": 5893632,
   "encoding": "none",
-  "notes": "Contas adicionais agora concluem a entrada em sessoes separadas, sem depender do titulo do dialog de spawn.",
+  "notes": "Cada pagina agora controla uma conta independente, com servidor, nick, processo e dialogs proprios; o spawn espera confirmacao real do servidor.",
   "min_supported_version": "1.2.0"
 }
