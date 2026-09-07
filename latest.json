@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.39-beta.1",
-  "published_at": "2026-09-07T03:14:54Z",
+  "version": "1.6.41-beta.1",
+  "published_at": "2026-09-07T04:20:03Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.39-beta.1/Horizonte_AFK.exe",
-  "sha256": "52298347aa8794952f999bfc6682c20ab50ab1d303320c4e166667e13a20e690",
-  "size_bytes": 5872640,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.41-beta.1/Horizonte_AFK.exe",
+  "sha256": "c21458263f844198bf3cecd7ad11bcca1447db524382b262fa274c87fba0c8dc",
+  "size_bytes": 5873664,
   "encoding": "none",
-  "notes": "Corrige falha de conexao aditiva causada por colisao com a variavel automatica Host do PowerShell.",
+  "notes": "Contas adicionais agora concluem a entrada em sessoes separadas, sem depender do titulo do dialog de spawn.",
   "min_supported_version": "1.2.0"
 }
