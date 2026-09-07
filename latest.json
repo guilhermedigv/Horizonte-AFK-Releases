@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.44-beta.1",
-  "published_at": "2026-09-07T05:16:55Z",
+  "version": "1.6.45-beta.1",
+  "published_at": "2026-09-07T05:29:18Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.44-beta.1/Horizonte_AFK.exe",
-  "sha256": "532880cac069519b9fec521f76661b1a54b68e6b25db3bf51765c67a8f4a2f22",
-  "size_bytes": 5900800,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.45-beta.1/Horizonte_AFK.exe",
+  "sha256": "2e2572d05347715d4dcaa357ce7b098eab79678d4e8436a19855c7a350fb29df",
+  "size_bytes": 5903360,
   "encoding": "none",
-  "notes": "100% 24/7 na Discloud: modo local removido; cada pagina controla sua propria sessao Cloud e a aba Conexao e Chat acompanha a conta selecionada.",
+  "notes": "Corrige o clique de conectar 24/7 por pagina usando o fluxo Cloud estavel e exibindo o erro real quando a sessao nao puder ser criada.",
   "min_supported_version": "1.2.0"
 }
