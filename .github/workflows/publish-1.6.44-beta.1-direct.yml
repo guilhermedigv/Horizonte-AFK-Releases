@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.44 beta1 direct
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.44-beta.1-direct.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-dd3c-820e-9ab8-dcd69f93640b/raw?se=2026-09-07T05%3A21%3A28Z&sp=r&sv=2026-02-06&sr=b&scid=24c8207b-1ab3-52eb-b70f-67f014fd40b7&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T13%3A27%3A48Z&ske=2026-09-07T13%3A27%3A48Z&sks=b&skv=2026-02-06&sig=o5T50amdFn1Ulch/9SX1f5ZcpFlAjvyuxpwFeiotd20%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5900800'
+          test "$SHA" = '532880cac069519b9fec521f76661b1a54b68e6b25db3bf51765c67a8f4a2f22'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Horizonte AFK agora é 100% 24/7 na Discloud. O modo local foi removido do fluxo do produto. Cada aba de conta possui sua própria sessão Cloud independente e continua online mesmo ao trocar de página ou fechar o launcher. A aba CONEXÃO E CHAT acompanha a página selecionada: status, histórico e envio são direcionados somente para a sessão 24/7 daquela conta. O botão de modo 24/7 fica sempre ativo por padrão e a aba Contas não oferece mais conexão local.'
+          if gh release view 'v1.6.44-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.44-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.44-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.44-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.44-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.44-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "100% 24/7 na Discloud: modo local removido; cada pagina controla sua propria sessao Cloud e a aba Conexao e Chat acompanha a conta selecionada.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.44-beta.1' || true
+          git push
