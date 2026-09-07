@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.45-beta.1",
-  "published_at": "2026-09-07T05:29:18Z",
+  "version": "1.6.46-beta.1",
+  "published_at": "2026-09-07T05:56:30Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.45-beta.1/Horizonte_AFK.exe",
-  "sha256": "2e2572d05347715d4dcaa357ce7b098eab79678d4e8436a19855c7a350fb29df",
-  "size_bytes": 5903360,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.46-beta.1/Horizonte_AFK.exe",
+  "sha256": "2429f86a25ed91f3416f42eed555c2141d62017e66ce6d8496b10b60d3fd81d7",
+  "size_bytes": 5906432,
   "encoding": "none",
-  "notes": "Corrige o clique de conectar 24/7 por pagina usando o fluxo Cloud estavel e exibindo o erro real quando a sessao nao puder ser criada.",
+  "notes": "Estabilizacao global do modo 100% 24/7: sessoes Cloud independentes por pagina, identidade exata, desconexao por pagina e persistencia correta das abas.",
   "min_supported_version": "1.2.0"
 }
