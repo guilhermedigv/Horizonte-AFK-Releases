@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.41 beta1 direct
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.41-beta.1-direct.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar build validada
+        env:
+          ARTIFACT_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-b3c4-820e-84b9-67c4d61ceb69/raw?se=2026-09-07T04%3A24%3A33Z&sp=r&sv=2026-02-06&sr=b&scid=9c274b28-d767-5df2-8949-d03acff00d84&skoid=68f37fa7-4e08-478b-93f3-c72d563a0ab3&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-06T16%3A34%3A38Z&ske=2026-09-07T16%3A34%3A38Z&sks=b&skv=2026-02-06&sig=sL6c8BFgFiYtq1N3Am4jcclPbLmmp3xaQsR9DY2yn14%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o artifact.zip
+          rm -rf artifact && mkdir artifact
+          unzip -q artifact.zip -d artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5873664'
+          test "$SHA" = 'c21458263f844198bf3cecd7ad11bcca1447db524382b262fa274c87fba0c8dc'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Simplifica a conexao de contas adicionais: cada nick roda em sua propria sessao local e finaliza o spawn sem depender do texto/titulo do dialog. Se outro dialog chegar, o spawn pendente e cancelado; quando a sequencia termina, somente aquela conta conclui a entrada.'
+          if gh release view 'v1.6.41-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.41-beta.1' Horizonte_AFK.exe --clobber
+          else
+            gh release create 'v1.6.41-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.41-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.41-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.41-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Contas adicionais agora concluem a entrada em sessoes separadas, sem depender do titulo do dialog de spawn.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.41-beta.1' || true
+          git push
