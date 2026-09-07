@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.35-beta.1",
-  "published_at": "2026-09-07T01:35:10Z",
+  "version": "1.6.36-beta.1",
+  "published_at": "2026-09-07T02:01:00Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.35-beta.1/Horizonte_AFK.exe",
-  "sha256": "94d78e487ffb38067ad5c3410310ba1fdd8b1709344c2cd0c61ec567c8966902",
-  "size_bytes": 5862400,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.36-beta.1/Horizonte_AFK.exe",
+  "sha256": "8007948ebb5e471cea1762114ca14dce1875097ca14395c0ca56d6c1e250704c",
+  "size_bytes": 5872640,
   "encoding": "none",
-  "notes": "Multi-servidor passa a responder login, senha, 2FA e spawn pelo próprio dialog nativo oculto do RakSAMP, controlado pela UI limpa do Horizonte, sem relay de senha.",
+  "notes": "Conexão local unificada no botão principal, com seleção de um ou vários servidores e nick independente salvo por servidor no Centro de Contas.",
   "min_supported_version": "1.2.0"
 }
