@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.33-beta.1",
-  "published_at": "2026-09-07T00:57:05Z",
+  "version": "1.6.34-beta.1",
+  "published_at": "2026-09-07T01:13:06Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.33-beta.1/Horizonte_AFK.exe",
-  "sha256": "cdab912eb750f246de20db92103cc21303883ca9c1574a961fd8e90671b635f8",
-  "size_bytes": 5846528,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.34-beta.1/Horizonte_AFK.exe",
+  "sha256": "eac4c25b7b7334c2f8dbdf1f783800e237b7ab7c41a68c91052f3a035b84607a",
+  "size_bytes": 5858816,
   "encoding": "none",
-  "notes": "Restaura dialogs nativos independentes no multi-servidor, removendo o relay que causava repetição infinita da senha e bloqueava o fluxo até o spawn.",
+  "notes": "Corrige a UI quebrada da 1.6.33 mantendo respostas de dialog diretas por sessão, sem relay pelo painel principal.",
   "min_supported_version": "1.2.0"
 }
