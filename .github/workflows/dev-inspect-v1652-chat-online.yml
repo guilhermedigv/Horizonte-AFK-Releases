@@ -29,11 +29,10 @@ jobs:
           pat=r'(?m)^function Open-HZUcpConnection\([^\n]*\)\{[^\n]*\}\r?\n?'
           m=re.search(pat,region)
           if not m: raise SystemExit('Open-HZUcpConnection missing')
-          new="""function Open-HZUcpConnection($v){$id=[string]$v.Id;$n=([string]$v.Nick).Trim();$i=Get-HZScalarInt $v.I -1;if(!$id-or!$n){throw 'Conta indisponível.'};$p=$null;foreach($x in @($script:hzAccountPages)){if([string]$x.AccountId-eq$id){$p=$x;break}};if($null-eq$p){foreach($x in @($script:hzAccountPages)){if(([string]$x.Nick).Equals($n,[StringComparison]::OrdinalIgnoreCase)-and[int]$x.ServerIndex-eq$i){$p=$x;break}}};if($null-eq$p){foreach($x in @($script:hzAccountPages)){if(![string]$x.AccountId-and![string]$x.Nick){$p=$x;break}}};if($null-eq$p){$p=New-HZAccountPage $false $n $i $id $false};if($null-eq$p){throw 'Não foi possível abrir a conta.'};$p.AccountId=$id;$p.Nick=$n;$p.ServerIndex=$i;Select-HZAccountPage ([string]$p.Id);try{$a=Ensure-HZAccountCurrent;if($a){$p.AccountId=[string]$a.Id;Save-HZAccountPages};Sync-HZActivePageCloudAttachment $true}catch{};Show-HZConnectionCenter}\n"""
+          new="""function Open-HZUcpConnection($v){$id=[string]$v.Id;$n=([string]$v.Nick).Trim();$i=Get-HZScalarInt $v.I -1;if(!$id-or!$n){throw 'Conta indisponível.'};$p=$null;foreach($x in @($script:hzAccountPages)){if([string]$x.AccountId-eq$id){$p=$x;break}};if($null-eq$p){foreach($x in @($script:hzAccountPages)){if(([string]$x.Nick).Equals($n,[StringComparison]::OrdinalIgnoreCase)-and[int]$x.ServerIndex-eq$i){$p=$x;break}}};if($null-eq$p){$p=New-HZAccountPage $false $n $i $id $false};if($null-eq$p){throw 'Não foi possível abrir a conta.'};$p.AccountId=$id;$p.Nick=$n;$p.ServerIndex=$i;Select-HZAccountPage ([string]$p.Id);try{$a=Ensure-HZAccountCurrent;if($a){$p.AccountId=[string]$a.Id;Save-HZAccountPages};Sync-HZActivePageCloudAttachment $true}catch{};Show-HZConnectionCenter}\n"""
           region=region[:m.start()]+new+region[m.end():]
           old_len=e-s
           if len(region.encode('utf-8'))>old_len:
-              # Collapse only XML inter-tag whitespace in the account-center here-string.
               region=re.sub(r'>\r?\n\s*<','><',region)
           raw=region.encode('utf-8')
           if len(raw)>old_len: raise SystemExit(f'patched region too large {len(raw)} > {old_len}')
