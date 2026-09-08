@@ -1,0 +1,188 @@
+name: Build Horizonte AFK 1.6.25 beta1
+on:
+  push:
+    branches: [build-v1.6.25-beta.1]
+    paths:
+      - '.github/workflows/build-1.6.25-beta.1.yml'
+      - 'build-src/v1.6.25/**'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: false
+
+      - name: Verify exact public 1.6.24 base
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $expected='ffe11c5a8819f7f97bc1ecc13603ced2d6ebda2ab1a5dac4507cdde24052dce5'
+          if(!(Test-Path 'Horizonte_AFK.exe')){throw 'Current public EXE is missing from Releases main'}
+          $h=(Get-FileHash 'Horizonte_AFK.exe' -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h-ne$expected){throw ('Public 1.6.24 base hash mismatch: '+$h)}
+          if((Get-Item 'Horizonte_AFK.exe').Length-ne5830656){throw 'Public 1.6.24 base size mismatch'}
+          Write-Host ('BASE_SHA256='+$h)
+
+      - name: Extract exact public 1.6.24 runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:HORIZONTE_TEST_MODE='1';$env:HZ_TEST_MODE='1'
+          $p=Start-Process -FilePath (Resolve-Path 'Horizonte_AFK.exe') -PassThru
+          $runtime=$null
+          $root=Join-Path $env:LOCALAPPDATA 'HorizonteAFK\runtime-v12-dialog-event'
+          for($i=0;$i-lt100;$i++){
+            Start-Sleep -Milliseconds 500
+            $candidate=Join-Path $root 'Horizonte-AFK.ps1'
+            $core=Join-Path $root 'RakSAMPClient.exe'
+            $lua=Join-Path $root 'lua51.dll'
+            $hero=Join-Path $root 'hero_bg.jpg'
+            $icon=Join-Path $root 'hz_icon.png'
+            if((Test-Path $candidate)-and(Test-Path $core)-and(Test-Path $lua)-and(Test-Path $hero)-and(Test-Path $icon)){
+              $raw=[IO.File]::ReadAllText($candidate)
+              if($raw.Contains("`$appVersion = '1.6.24-beta.1'")){$runtime=$candidate;break}
+            }
+          }
+          try{if(-not$p.HasExited){Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue}}catch{}
+          Get-Process HorizonteAFK.Host,RakSAMPClient -ErrorAction SilentlyContinue|Stop-Process -Force -ErrorAction SilentlyContinue
+          if(-not$runtime){throw 'Exact public 1.6.24 runtime did not materialize'}
+          New-Item -ItemType Directory 'candidate\payload' -Force|Out-Null
+          Copy-Item (Join-Path $root 'Horizonte-AFK.ps1') 'candidate\payload\Horizonte-AFK.ps1' -Force
+          Copy-Item (Join-Path $root 'RakSAMPClient.exe') 'candidate\payload\RakSAMPClient.exe' -Force
+          Copy-Item (Join-Path $root 'lua51.dll') 'candidate\payload\lua51.dll' -Force
+          Copy-Item (Join-Path $root 'hero_bg.jpg') 'candidate\payload\hero_bg.jpg' -Force
+          Copy-Item (Join-Path $root 'hz_icon.png') 'candidate\payload\hz_icon.png' -Force
+          $raw=[IO.File]::ReadAllText('candidate\payload\Horizonte-AFK.ps1')
+          foreach($n in @('Decode-HZCoreDialogHex',"Source = 'corefile'",'Wait-HZCoreDialogTransition','hz_dialog_event.txt')){if(-not$raw.Contains($n)){throw ('Public 1.6.24 dialog bridge missing: '+$n)}}
+          Write-Host ('PUBLIC_RUNTIME_SHA256='+((Get-FileHash 'candidate\payload\Horizonte-AFK.ps1' -Algorithm SHA256).Hash.ToLowerInvariant()))
+
+      - name: Prepare 1.6.25 source tree
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          Copy-Item 'build-src\v1.5.0\main.go' 'candidate\main.go' -Force
+          Copy-Item 'build-src\v1.5.0\features.go' 'candidate\features.go' -Force
+          Copy-Item 'build-src\v1.5.0\go.mod' 'candidate\go.mod' -Force
+          python build-src/v1.6.25/patch_runtime.py candidate/payload/Horizonte-AFK.ps1
+          if($LASTEXITCODE-ne0){throw 'Runtime patch failed'}
+          python build-src/v1.6.25/prepare_wrapper.py candidate
+          if($LASTEXITCODE-ne0){throw 'Wrapper preparation failed'}
+
+      - name: Validate PowerShell and cross-feature invariants
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=(Resolve-Path 'candidate\payload\Horizonte-AFK.ps1')
+          $tokens=$null;$errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if($errors.Count){$errors|ForEach-Object{Write-Error ($_.Message+' line '+$_.Extent.StartLineNumber)};throw 'PowerShell parser failed'}
+          $raw=[IO.File]::ReadAllText($path)
+          foreach($n in @(
+            "`$appVersion = '1.6.25-beta.1'",'Decode-HZCoreDialogHex',"Source = 'corefile'",'Wait-HZCoreDialogTransition','Invoke-HZCoreDialogResponse',
+            '$psi.RedirectStandardInput = $true','device-registry-v1.json','accounts-v1.json','HZLocalProcessJob',
+            'Add_Closing','Hide-HZToTray','Stop-HZLocalProcessesUnderDataRoot','Add_PreviewKeyDown','Send-HZServerText',
+            'Chat do servidor aparece somente em CONEXÃO E CHAT.','multiQueue','Start-NextHZMultiSession','Read-MultiSessionState',
+            'legacy_owner_reconcile_v1','dialog_response_ack_v1','reconciled|'
+          )){if(-not$raw.Contains($n)){throw ('Regression invariant missing: '+$n)}}
+          foreach($bad in @('ReadMemory($pid32, 0x004E26C8','ReadMemory($pid32, 0x0050CF00','Get-Random')){if($raw.Contains($bad)){throw ('Forbidden regression present: '+$bad)}}
+          $start=$raw.IndexOf('function Invoke-HZOneTimeCloudCleanup1619');$end=$raw.IndexOf('# Horizonte AFK 1.6.7 - Centro de Contas.',$start)
+          if($start-lt0-or$end-lt0){throw 'Cloud migration block missing'}
+          $migration=$raw.Substring($start,$end-$start)
+          foreach($bad in @('/stop','Stop-HZCloudSessionIdSafe','Set-HZRegistrySessionsOffline')){if($migration.Contains($bad)){throw ('Destructive Cloud migration remains: '+$bad)}}
+          if(-not$migration.Contains('Sync-HZAccountsFromCloud $sessions')){throw 'Cloud reconciliation missing'}
+          $exitStart=$raw.IndexOf('$ExitButton.Add_Click');$exitEnd=$raw.IndexOf('$window.Add_KeyDown',$exitStart)
+          if($exitStart-lt0-or$exitEnd-lt0){throw 'Exit handler missing'}
+          $exit=$raw.Substring($exitStart,$exitEnd-$exitStart)
+          if(-not$exit.Contains('$script:cloudDetachOnExit = $true')){throw 'Sair no longer detaches Cloud'}
+          if(-not$exit.Contains('Stop-HZLocalProcessesUnderDataRoot')){throw 'Sair local cleanup missing'}
+          $cloudStart=$raw.IndexOf('function Update-HZCloudConsole');$cloudEnd=$raw.IndexOf('function Update-HZCloudSession',$cloudStart)
+          if($cloudStart-lt0-or$cloudEnd-lt0){throw 'Cloud console function missing'}
+          $cloudBlock=$raw.Substring($cloudStart,$cloudEnd-$cloudStart)
+          if(-not$cloudBlock.Contains("Where-Object { `$_ -notmatch '\[(CHAT|CMSG)\]' }")){throw 'Cloud status/chat separation missing'}
+          Write-Host 'PowerShell parser + root-cause invariants OK'
+
+      - name: Verify deployed Cloud v0.5.8 contract
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $uri='https://hzrp.discloud.app/health'
+          $last=$null
+          for($i=1;$i-le36;$i++){
+            try{
+              $h=Invoke-RestMethod -Uri $uri -UseBasicParsing -TimeoutSec 8 -Headers @{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK-CI/1.6.25'}
+              $last=$h
+              if(([string]$h.version)-eq'0.5.8' -and $h.legacy_owner_reconcile_v1 -eq $true -and $h.dialog_response_ack_v1 -eq $true){
+                Write-Host ('CLOUD_OK version='+$h.version+' attempt='+$i)
+                exit 0
+              }
+              Write-Host ('Cloud not ready yet: version='+[string]$h.version+' attempt='+$i)
+            }catch{Write-Host ('Cloud health attempt '+$i+' failed: '+$_.Exception.Message)}
+            Start-Sleep -Seconds 5
+          }
+          if($last){$last|ConvertTo-Json -Depth 6|Write-Host}
+          throw 'Deployed Cloud did not expose v0.5.8 ownership/dialog acknowledgement contract'
+
+      - name: Validate core and dialog encoding contract
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'candidate\payload\RakSAMPClient.exe'))
+          $ascii=[Text.Encoding]::ASCII.GetString($bytes)
+          foreach($n in @('[HZDIALOG_EVENT] seq=','[HZDIALOG] response sent','[HZIDENTITY] Nickname rejected by server')){if(-not$ascii.Contains($n)){throw ('Core contract missing: '+$n)}}
+          $enc=[Text.Encoding]::GetEncoding(1251);$expected='Senha de acesso';$hex=([BitConverter]::ToString($enc.GetBytes($expected))).Replace('-','')
+          [byte[]]$out=New-Object byte[] ($hex.Length/2);for($i=0;$i-lt$out.Length;$i++){$out[$i]=[Convert]::ToByte($hex.Substring($i*2,2),16)}
+          if($enc.GetString($out)-ne$expected){throw 'CP1251 roundtrip failed'}
+          Write-Host 'RakSAMP core + CP1251 contract OK'
+
+      - name: Compile 1.6.25 EXE
+        shell: pwsh
+        working-directory: candidate
+        run: |
+          $ErrorActionPreference='Stop';$env:CGO_ENABLED='0'
+          New-Item -ItemType Directory dist -Force|Out-Null
+          go build -buildvcs=false -trimpath -ldflags '-s -w -H=windowsgui -buildid=HorizonteAFK-1.6.25-beta.1-cloud-reconcile' -o dist/Horizonte_AFK_1.6.25-beta.1.exe .
+          if($LASTEXITCODE-ne0){throw 'Go build failed'}
+          $f=Get-Item dist/Horizonte_AFK_1.6.25-beta.1.exe;$h=(Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($f.Length-lt5000000){throw 'Built EXE unexpectedly small'}
+          Write-Host ('EXE_SIZE='+$f.Length);Write-Host ('EXE_SHA256='+$h)
+
+      - name: Smoke test isolated 1.6.25 runtime
+        shell: pwsh
+        working-directory: candidate
+        run: |
+          $ErrorActionPreference='Stop';$env:HORIZONTE_TEST_MODE='1';$env:HZ_TEST_MODE='1'
+          $exe=(Resolve-Path 'dist\Horizonte_AFK_1.6.25-beta.1.exe')
+          $before=(Get-FileHash $exe -Algorithm SHA256).Hash
+          $p=Start-Process -FilePath $exe -PassThru
+          $root=Join-Path $env:LOCALAPPDATA 'HorizonteAFK\runtime-v13-cloud-reconcile'
+          $runtime=$null;$core=$null;$lua=$null
+          for($i=0;$i-lt100;$i++){
+            Start-Sleep -Milliseconds 500
+            $candidate=Join-Path $root 'Horizonte-AFK.ps1';$candidateCore=Join-Path $root 'RakSAMPClient.exe';$candidateLua=Join-Path $root 'lua51.dll'
+            if((Test-Path $candidate)-and(Test-Path $candidateCore)-and(Test-Path $candidateLua)){
+              $r=[IO.File]::ReadAllText($candidate)
+              if($r.Contains("`$appVersion = '1.6.25-beta.1'")){$runtime=$candidate;$core=$candidateCore;$lua=$candidateLua;break}
+            }
+          }
+          try{if(-not$p.HasExited){Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue}}catch{}
+          Get-Process HorizonteAFK.Host,RakSAMPClient -ErrorAction SilentlyContinue|Stop-Process -Force -ErrorAction SilentlyContinue
+          if(-not$runtime-or-not$core-or-not$lua){throw '1.6.25 isolated runtime did not materialize'}
+          $after=(Get-FileHash $exe -Algorithm SHA256).Hash
+          if($after-ne$before){throw 'Updater unexpectedly replaced the 1.6.25 candidate during smoke'}
+          if((Get-FileHash $core -Algorithm SHA256).Hash-ne(Get-FileHash 'payload\RakSAMPClient.exe' -Algorithm SHA256).Hash){throw 'Extracted core differs from embedded core'}
+          if((Get-FileHash $lua -Algorithm SHA256).Hash-ne(Get-FileHash 'payload\lua51.dll' -Algorithm SHA256).Hash){throw 'Extracted lua51 differs from embedded lua51'}
+          $r=[IO.File]::ReadAllText($runtime)
+          foreach($n in @('Decode-HZCoreDialogHex','Wait-HZCoreDialogTransition','dialog_response_ack_v1','legacy_owner_reconcile_v1','reconciled|','Stop-HZLocalProcessesUnderDataRoot')){if(-not$r.Contains($n)){throw ('Smoke invariant missing: '+$n)}}
+          Write-Host 'Smoke 1.6.25 beta1 OK'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-1.6.25-beta.1-validated
+          path: candidate/dist/Horizonte_AFK_1.6.25-beta.1.exe
+          retention-days: 3
+          if-no-files-found: error
