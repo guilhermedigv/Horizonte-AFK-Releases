@@ -3,6 +3,18 @@
     "channel":  "beta",
     "versions":  [
                      {
+                         "version":  "1.6.58-beta.1",
+                         "date":  "2026-09-08",
+                         "changes":  [
+                                         "Menu desktop oficialmente descontinuado.",
+                                         "EXE final mostra apenas aviso e encerra.",
+                                         "Opcao de abrir o painel web da Discloud pelo aviso.",
+                                         "Runtime local antigo nao e mais carregado.",
+                                         "Atualizacao marcada como obrigatoria para substituir clientes antigos.",
+                                         "Contas AFK continuam 24/7 na Cloud."
+                                     ]
+                     },
+                     {
                          "version":  "1.6.57-beta.1",
                          "date":  "2026-09-08",
                          "changes":  [

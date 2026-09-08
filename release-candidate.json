@@ -1,14 +1,14 @@
 ﻿{
     "product":  "Horizonte AFK",
     "channel":  "beta",
-    "version":  "1.6.57-beta.1",
-    "published_at":  "2026-09-08T20:21:08Z",
+    "version":  "1.6.58-beta.1",
+    "published_at":  "2026-09-08T21:16:28Z",
     "available":  true,
-    "mandatory":  false,
-    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.57-beta.1/Horizonte_AFK.exe",
-    "sha256":  "db12f47692c9f47fbec79a2bb8ef1dc7dbfd2b68bcde6bd53217d5b724fc11ec",
-    "size_bytes":  1484288,
+    "mandatory":  true,
+    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.58-beta.1/Horizonte_AFK.exe",
+    "sha256":  "0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49",
+    "size_bytes":  1485312,
     "encoding":  "none",
-    "notes":  "O EXE agora Ã© um redirecionador leve para o painel web da Discloud. Contas, dialogs, chat e AFK ficam na Cloud; contas normais sÃ£o isoladas e admins veem todas as sessÃµes. Requer Cloud 0.6.2.",
+    "notes":  "O menu desktop foi descontinuado. Esta atualizacao final substitui o painel antigo por um aviso leve e direciona para o painel web da Discloud. As sessoes 24/7 continuam na Cloud.",
     "min_supported_version":  "1.2.0"
 }
