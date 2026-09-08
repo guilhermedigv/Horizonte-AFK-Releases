@@ -25,21 +25,21 @@ jobs:
       - name: Testar redirector
         shell: powershell
         working-directory: web-redirector
-        run: go test ./...
+        run: go test -buildvcs=false ./...
       - name: Reproduzir candidato validado
         shell: powershell
         working-directory: web-redirector
         run: |
           New-Item -ItemType Directory -Force candidate|Out-Null
-          go build -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
+          go build -buildvcs=false -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
       - name: Validar artefato exato
         shell: powershell
         run: |
           $exe='web-redirector/candidate/Horizonte_AFK.exe'
           $size=(Get-Item $exe).Length
           $sha=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          if($size-ne1484800){throw "Tamanho diferente do candidato validado: $size"}
-          if($sha-ne'0bc892d034378a88f540a1aa4595b24ce4863ab4f6003836186eb03e08c79a62'){throw "Hash diferente do candidato validado: $sha"}
+          if($size-ne1484288){throw "Tamanho diferente do candidato validado: $size"}
+          if($sha-ne'db12f47692c9f47fbec79a2bb8ef1dc7dbfd2b68bcde6bd53217d5b724fc11ec'){throw "Hash diferente do candidato validado: $sha"}
           $bytes=[IO.File]::ReadAllBytes($exe)
           if($bytes[0]-ne0x4D-or$bytes[1]-ne0x5A){throw 'Executável PE inválido'}
           $raw=[Text.Encoding]::ASCII.GetString($bytes)
