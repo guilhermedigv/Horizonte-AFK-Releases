@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.48-beta.1",
-  "published_at": "2026-09-07T15:34:39Z",
+  "version": "1.6.49-beta.1",
+  "published_at": "2026-09-08T01:10:41Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe",
-  "sha256": "6503925d26779557bc834e53bc96c886b6192e23ca54ef9eefb638ec9f4127b6",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.49-beta.1/Horizonte_AFK.exe",
+  "sha256": "81440e11db4b655bcb41ab40f1ff800dc44fee6170666bf400c3bb18a62aa21c",
   "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "ServerClosed/restart autologin: dialog responses learned per account and replayed by Cloud v0.5.9 with encrypted persistence and retry-loop protection.",
+  "notes": "Centro de Contas redesenhado com cards e acesso direto a CONEXÕES E CHAT por conta, preservando as correções 24/7 da v1.6.48.",
   "min_supported_version": "1.2.0"
 }
