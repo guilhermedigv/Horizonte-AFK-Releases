@@ -1,0 +1,67 @@
+name: Publicar Horizonte AFK 1.6.49 beta1 accounts UI
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.49-beta.1-accounts-ui.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar base publica esperada
+        run: |
+          set -euo pipefail
+          test "$(jq -r '.version' latest.json)" = '1.6.48-beta.1'
+      - name: Baixar artefato exato validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf artifact && mkdir artifact
+          gh run download 34175689373 --repo "$GITHUB_REPOSITORY" --name 'Horizonte-AFK-v1.6.49-accounts-ui-candidate' --dir artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5908992'
+          test "$SHA" = '81440e11db4b655bcb41ab40f1ff800dc44fee6170666bf400c3bb18a62aa21c'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Redesenho do Centro de Contas com visual em cards, status mais legível e organização por conta/servidor. Cada conta agora possui o botão CONEXÕES E CHAT, que seleciona a página correspondente e abre diretamente o painel existente de conexões e chat. Mantidas as correções e proteções da v1.6.48, incluindo sessões Cloud 24/7, reconciliação, ServerClosed e autologin aprendido da Cloud v0.5.9.'
+          if gh release view 'v1.6.49-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.49-beta.1' Horizonte_AFK.exe --clobber
+            gh release edit 'v1.6.49-beta.1' --notes "$NOTES"
+          else
+            gh release create 'v1.6.49-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.49-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.49-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.49-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Centro de Contas redesenhado com cards e acesso direto a CONEXÕES E CHAT por conta, preservando as correções 24/7 da v1.6.48.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.49-beta.1'
+          git push
