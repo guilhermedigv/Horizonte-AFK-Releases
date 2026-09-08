@@ -23,7 +23,7 @@ jobs:
         run: |
           Add-Type -AssemblyName PresentationFramework
           $raw=Get-Content '.release-staging/v1.6.50/accounts-ui-functions.ps1' -Raw -Encoding UTF8
-          foreach($m in @('$e.OriginalSource','DataContext.Id'},'$true);$d.FindName')){if(-not $raw.Contains($m)){throw "Missing click fix marker: $m"}}
+          foreach($m in @('$e.OriginalSource','DataContext.Id','},$true);$d.FindName')){if(-not $raw.Contains($m)){throw "Missing click fix marker: $m"}}
           $m=[regex]::Match($raw,"(?s)\$ux=@'\r?\n(.*?)\r?\n'@;")
           if(-not $m.Success){throw 'Account Center XAML here-string not found'}
           $reader=New-Object System.Xml.XmlNodeReader([xml]$m.Groups[1].Value)
@@ -46,7 +46,6 @@ jobs:
           old_len=end-start
           new=Path('.release-staging/v1.6.50/accounts-ui-functions.ps1').read_bytes()
           if new.startswith(b'\xef\xbb\xbf'): new=new[3:]
-          # Cosmetic-only reductions keep the runtime logic intact while preserving PE offsets.
           for token in [
               b' BorderBrush="#18A9FF"',b' BorderBrush="#285A76"',b' BorderBrush="#31506D"',
               b' BorderBrush="#23895D"',b' BorderBrush="#71313C"',b' FontWeight="SemiBold"'
