@@ -1,0 +1,68 @@
+name: Publicar Horizonte AFK 1.6.53 beta1 cloud chat reattachment
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.53-beta.1-cloud-chat-reattach.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar base publica
+        run: |
+          set -euo pipefail
+          test "$(jq -r '.version' latest.json)" = '1.6.52-beta.1'
+          test "$(jq -r '.sha256' latest.json)" = 'ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f'
+      - name: Baixar candidato exato validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf artifact && mkdir artifact
+          gh run download 34178066349 --repo "$GITHUB_REPOSITORY" --name 'Horizonte-AFK-v1.6.53-cloud-chat-reattach-candidate' --dir artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5908992'
+          test "$SHA" = '91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a vinculação de contas já conectadas à janela CONEXÕES E CHAT. Ao abrir pelo Centro de Contas, a página agora reconcilia nick e servidor com o perfil local, atualiza o AccountId quando necessário e força a reanexação à sessão Cloud existente antes de abrir o chat. Mantidas as correções e proteções das versões anteriores.'
+          if gh release view 'v1.6.53-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.53-beta.1' Horizonte_AFK.exe --clobber
+            gh release edit 'v1.6.53-beta.1' --notes "$NOTES"
+          else
+            gh release create 'v1.6.53-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.53-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.53-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige a reanexação de contas já conectadas ao CONEXÕES E CHAT, reconciliando o perfil local e forçando atualização da sessão Cloud antes de abrir o chat.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.53-beta.1'
+          git push
