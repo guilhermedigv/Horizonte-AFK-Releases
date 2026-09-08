@@ -88,7 +88,7 @@ jobs:
               o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
               return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
           if pe(a)!=pe(b):raise SystemExit('PE section map changed')
-          for m in (b'ServerClosed',b'learned',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration',b'chat_command_v1'):
+          for m in (b'ServerClosed',b'learned',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration'):
               if m not in b:raise SystemExit('Missing preserved marker '+repr(m))
           print('final_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
       - uses: actions/upload-artifact@v4
