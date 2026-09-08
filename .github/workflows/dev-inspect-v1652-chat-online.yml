@@ -1,0 +1,45 @@
+name: Dev inspect v1.6.52 chat online attachment
+on:
+  push:
+    branches: [dev/connection-chat-online-fix-v1.6.53]
+    paths:
+      - '.github/workflows/dev-inspect-v1652-chat-online.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download exact v1.6.52
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.52-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
+          echo 'ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f  Horizonte_AFK.exe' | sha256sum -c -
+      - name: Print cloud/chat functions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          b=Path('Horizonte_AFK.exe').read_bytes()
+          start=b.find(b'# Horizonte AFK Launcher')
+          src=b[start:start+750000].decode('utf-8','replace')
+          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
+          wanted={
+            'Get-HZActivePageCloudSessionId','Sync-HZActivePageCloudAttachment','Refresh-HZConnectionWindow',
+            'Show-HZConnectionCenter','Get-HZCloudSessionsSafe','Get-HZUcpStatus','Get-HZAccountCloudSessionId',
+            'Open-HZUcpConnection','Select-HZAccountPage','Refresh-HZAccountsCenter','Start-HZCloudSession',
+            'Get-HZCloudSessionById','Get-HZCloudStatus','Get-HZActivePage','Save-HZActivePageFields'
+          }
+          for i,m in enumerate(funcs):
+              n=m.group(1)
+              if n not in wanted: continue
+              e=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              print(f'===== {n} BEGIN =====')
+              print(src[m.start():e].rstrip())
+              print(f'===== {n} END =====')
+          needle='ainda não está conectada 24/7'
+          p=src.find(needle)
+          if p>=0:
+              print('===== MESSAGE CONTEXT =====')
+              print(src[max(0,p-2500):p+2500])
+          PY
