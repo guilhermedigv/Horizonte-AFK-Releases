@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.54-beta.1",
-  "published_at": "2026-09-08T02:03:41Z",
+  "version": "1.6.55-beta.1",
+  "published_at": "2026-09-08T02:26:15Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.54-beta.1/Horizonte_AFK.exe",
-  "sha256": "aa6a526b0a9873160f1af9ff282ac0a9d1940caa692a2c1f280f6c3e6d6bae91",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.55-beta.1/Horizonte_AFK.exe",
+  "sha256": "0079d132ca1963e1073c8914f4e321fe65f0894ae6a4875ab88db8cbf7dc941c",
   "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "Estabiliza a vinculação da sessão 24/7 no CONEXÕES E CHAT para não alternar incorretamente de online para desconectada durante as atualizações da janela.",
+  "notes": "Corrige a causa raiz da perda de vínculo no CONEXÕES E CHAT: recarga de contas e leitura de páginas no Windows PowerShell. Validada por mais de três minutos com a Cloud real, sem quedas de vínculo.",
   "min_supported_version": "1.2.0"
 }

@@ -3,6 +3,16 @@
   "channel": "beta",
   "versions": [
     {
+      "version": "1.6.55-beta.1",
+      "date": "2026-09-08",
+      "changes": [
+        "Corrigida a conversão de contas que apagava a lista local durante refresh e fazia uma sessão Cloud online aparecer desconectada.",
+        "Leituras incompletas ou inválidas preservam as contas em memória.",
+        "Páginas são restauradas individualmente, sem concatenar IDs; vínculos antigos são reconciliados por nick, servidor e porta.",
+        "Validação com WPF e Cloud reais: 193,5 segundos, 1.002 consultas, zero quedas; 22 testes de regressão aprovados."
+      ]
+    },
+    {
       "version": "1.6.15-beta.1",
       "date": "2026-09-06",
       "changes": [
