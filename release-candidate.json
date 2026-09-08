@@ -1,14 +1,14 @@
-﻿{
-    "product":  "Horizonte AFK",
-    "channel":  "beta",
-    "version":  "1.6.58-beta.1",
-    "published_at":  "2026-09-08T21:16:28Z",
-    "available":  true,
-    "mandatory":  true,
-    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.58-beta.1/Horizonte_AFK.exe",
-    "sha256":  "0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49",
-    "size_bytes":  1485312,
-    "encoding":  "none",
-    "notes":  "O menu desktop foi descontinuado. Esta atualizacao final substitui o painel antigo por um aviso leve e direciona para o painel web da Discloud. As sessoes 24/7 continuam na Cloud.",
-    "min_supported_version":  "1.2.0"
+{
+  "product": "Horizonte AFK",
+  "channel": "beta",
+  "version": "1.6.58-beta.1",
+  "published_at": "2026-09-08T21:16:28Z",
+  "available": true,
+  "mandatory": true,
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.58-beta.1/Horizonte_AFK.exe",
+  "sha256": "0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49",
+  "size_bytes": 1485312,
+  "encoding": "none",
+  "notes": "O menu desktop foi descontinuado. Esta atualização final substitui o painel antigo por um aviso leve e direciona para o painel web da Discloud. As sessões 24/7 continuam na Cloud.",
+  "min_supported_version": "1.2.0"
 }
