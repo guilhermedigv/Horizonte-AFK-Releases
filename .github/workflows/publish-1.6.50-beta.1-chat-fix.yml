@@ -1,0 +1,67 @@
+name: Publicar Horizonte AFK 1.6.50 beta1 chat fix
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.50-beta.1-chat-fix.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar base publica esperada
+        run: |
+          set -euo pipefail
+          test "$(jq -r '.version' latest.json)" = '1.6.49-beta.1'
+      - name: Baixar artefato exato validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf artifact && mkdir artifact
+          gh run download 34176411895 --repo "$GITHUB_REPOSITORY" --name 'Horizonte-AFK-v1.6.50-chat-fix-candidate' --dir artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5908992'
+          test "$SHA" = '00b1f6c9fc34566ec4406c413a75acd4631d136d3d57686f5923db4d892edae6'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Correção do botão CONEXÕES E CHAT no Centro de Contas. O clique por conta agora é capturado de forma robusta dentro do DataTemplate, aceita eventos já tratados pela lista, recupera o ID da conta pelo Tag ou DataContext e então seleciona a página correta antes de abrir a janela existente de Conexão e Chat. Mantidas as correções e proteções da v1.6.49/v1.6.48.'
+          if gh release view 'v1.6.50-beta.1' >/dev/null 2>&1; then
+            gh release upload 'v1.6.50-beta.1' Horizonte_AFK.exe --clobber
+            gh release edit 'v1.6.50-beta.1' --notes "$NOTES"
+          else
+            gh release create 'v1.6.50-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.50-beta.1' --notes "$NOTES" --prerelease
+          fi
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.50-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.50-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Corrige o botão CONEXÕES E CHAT por conta no Centro de Contas, com roteamento de clique robusto e abertura da conta selecionada.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.50-beta.1'
+          git push
