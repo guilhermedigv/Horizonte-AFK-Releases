@@ -1,0 +1,108 @@
+name: Dev build v1.6.50 account chat fix
+on:
+  push:
+    branches: [dev/accounts-chat-fix-v1.6.50]
+    paths:
+      - '.github/workflows/dev-build-v1650-chat-fix.yml'
+      - '.release-staging/v1.6.50/accounts-ui-functions.ps1'
+permissions:
+  contents: read
+jobs:
+  patch:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact v1.6.49 base
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.49-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '81440e11db4b655bcb41ab40f1ff800dc44fee6170666bf400c3bb18a62aa21c'){throw "Unexpected base hash $h"}
+      - name: Validate WPF row and click-routing source
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName PresentationFramework
+          $raw=Get-Content '.release-staging/v1.6.50/accounts-ui-functions.ps1' -Raw -Encoding UTF8
+          foreach($m in @('$e.OriginalSource','DataContext.Id'},'$true);$d.FindName')){if(-not $raw.Contains($m)){throw "Missing click fix marker: $m"}}
+          $m=[regex]::Match($raw,"(?s)\$ux=@'\r?\n(.*?)\r?\n'@;")
+          if(-not $m.Success){throw 'Account Center XAML here-string not found'}
+          $reader=New-Object System.Xml.XmlNodeReader([xml]$m.Groups[1].Value)
+          $w=[Windows.Markup.XamlReader]::Load($reader)
+          $dt=$w.FindResource('R');if($null-eq$dt){throw 'Account row template missing'}
+          $row=$dt.LoadContent();$row.DataContext=[pscustomobject]@{Id='acct-test';Status='ONLINE';Bg='#123B30';Fg='#69F0B0';Nick='Teste';Server='Horizonte RP #1';Rules='login rápido: 1'}
+          $row.ApplyTemplate();$row.UpdateLayout()
+          $btn=$row.FindName('OpenChat');if($null-eq$btn){throw 'OpenChat button missing from DataTemplate'}
+          if([string]$btn.Content-ne'CONEXÕES E CHAT'){throw 'OpenChat label mismatch'}
+          $w.Close();Write-Host 'WPF account row validation OK'
+      - name: Patch only Account Center region
+        shell: python
+        run: |
+          from pathlib import Path
+          b=bytearray(Path('base.exe').read_bytes())
+          start_marker=b'function Refresh-HZAccountsCenter'
+          end_marker=b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.'
+          start=b.find(start_marker); end=b.find(end_marker,start)
+          if start<0 or end<0 or end<=start: raise SystemExit('account center region not found')
+          old_len=end-start
+          new=Path('.release-staging/v1.6.50/accounts-ui-functions.ps1').read_bytes()
+          if new.startswith(b'\xef\xbb\xbf'): new=new[3:]
+          # Cosmetic-only reductions keep the runtime logic intact while preserving PE offsets.
+          for token in [
+              b' BorderBrush="#18A9FF"',b' BorderBrush="#285A76"',b' BorderBrush="#31506D"',
+              b' BorderBrush="#23895D"',b' BorderBrush="#71313C"',b' FontWeight="SemiBold"'
+          ]:
+              if len(new)<=old_len: break
+              new=new.replace(token,b'',1)
+          if len(new)>old_len: raise SystemExit(f'new account center too large: {len(new)} > {old_len}')
+          gap=old_len-len(new)
+          if gap==1:new+=b'\n'
+          elif gap>=2:new+=b'#'+b' '*(gap-2)+b'\n'
+          assert len(new)==old_len
+          b[start:end]=new
+          old=b'1.6.49-beta.1'; newv=b'1.6.50-beta.1'; pos=0;count=0
+          while True:
+              i=b.find(old,pos)
+              if i<0:break
+              b[i:i+len(old)]=newv;pos=i+len(newv);count+=1
+          if count<1: raise SystemExit('version marker not found')
+          Path('Horizonte_AFK.exe').write_bytes(b)
+          print('account_region',start,end,'len',old_len,'padding',gap,'version_replacements',count)
+      - name: Validate embedded PowerShell and byte boundaries
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
+          $text=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('CONEXÕES E CHAT','$e.OriginalSource','DataContext.Id','Show-HZConnectionCenter','1.6.50-beta.1')){if(-not $text.Contains($m)){throw "Missing embedded marker: $m"}}
+          foreach($m in @('ServerClosed','learned_dialog','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $text.Contains($m)){throw "Missing preserved safety marker: $m"}}
+          $s=$text.IndexOf('function Refresh-HZAccountsCenter');$e=$text.IndexOf('# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',$s)
+          if($s-lt0-or$e-lt0){throw 'embedded account region missing'}
+          [void][scriptblock]::Create($text.Substring($s,$e-$s));Write-Host 'Embedded PowerShell parse OK'
+      - name: Validate PE shape and approved changes only
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib,struct
+          a=Path('base.exe').read_bytes();b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b):raise SystemExit('PE size changed')
+          s=a.find(b'function Refresh-HZAccountsCenter');e=a.find(b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',s)
+          ranges=[(s,e)];old=b'1.6.49-beta.1';p=0
+          while True:
+              i=a.find(old,p)
+              if i<0:break
+              ranges.append((i,i+len(old)));p=i+len(old)
+          bad=[]
+          for i,(x,y) in enumerate(zip(a,b)):
+              if x!=y and not any(lo<=i<hi for lo,hi in ranges):
+                  bad.append(i)
+                  if len(bad)==10:break
+          if bad:raise SystemExit(f'changed outside approved ranges: {bad}')
+          def pe(x):
+              o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
+              return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
+          if pe(a)!=pe(b):raise SystemExit('PE section map changed')
+          print('candidate_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.50-chat-fix-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
