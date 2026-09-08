@@ -1,0 +1,85 @@
+name: Dev inspect accounts UI
+on:
+  push:
+    branches:
+      - dev/accounts-ui-v1.6.49
+    paths:
+      - '.github/workflows/dev-inspect-accounts-ui.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download validated v1.6.48 binary
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
+          sha256sum Horizonte_AFK.exe
+          stat -c 'size=%s' Horizonte_AFK.exe
+      - name: Inspect PE and account-related embedded text
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re, struct
+          p=Path('Horizonte_AFK.exe')
+          b=p.read_bytes()
+          print('sha256', hashlib.sha256(b).hexdigest())
+          print('size', len(b))
+          needles=[
+              'Centro de Contas','CONTAS E SESS','contas e sessões','Contas e sessões',
+              'NUVEM','AFK ATIVO','CONEXÕES E CHAT','CONEXOES E CHAT',
+              'Salvar conta atual','SALVAR CONTA ATUAL','Conectar 24/7','CONECTAR 24/7',
+              'Excluir perfil','EXCLUIR PERFIL','login rápido','login rapido',
+              'Account','Accounts','ListBox','ItemsControl','DataTemplate','WindowStyle'
+          ]
+          encs=['utf-8','cp1252','utf-16le']
+          for text in needles:
+              for enc in encs:
+                  try: n=text.encode(enc)
+                  except: continue
+                  start=0
+                  hits=[]
+                  while True:
+                      i=b.find(n,start)
+                      if i<0: break
+                      hits.append(i); start=i+1
+                  if hits:
+                      print(f'HIT {text!r} enc={enc} offsets={hits[:20]} count={len(hits)}')
+          print('\n--- printable strings around account keywords ---')
+          for m in re.finditer(rb'[\x20-\x7e\x80-\xff]{12,}', b):
+              raw=m.group()
+              try: s=raw.decode('utf-8')
+              except: s=raw.decode('cp1252','replace')
+              low=s.lower()
+              if any(k in low for k in ['conta','session','sess','nuvem','24/7','chat','perfil','cloud','login r','afk ativo']):
+                  print(f'@{m.start()}: {s[:700]}')
+          print('\n--- UTF16LE strings around account keywords ---')
+          # Rough scan of printable UTF-16LE runs.
+          pat=re.compile(rb'(?:[\x20-\x7e\x80-\xff]\x00){8,}')
+          for m in pat.finditer(b):
+              s=m.group().decode('utf-16le','replace')
+              low=s.lower()
+              if any(k in low for k in ['conta','sess','nuvem','24/7','chat','perfil','cloud','login','afk ativo']):
+                  print(f'@{m.start()}: {s[:700]}')
+          # Basic PE section/overlay map.
+          if b[:2]==b'MZ':
+              peoff=struct.unpack_from('<I',b,0x3c)[0]
+              if b[peoff:peoff+4]==b'PE\0\0':
+                  nsec=struct.unpack_from('<H',b,peoff+6)[0]
+                  optsz=struct.unpack_from('<H',b,peoff+20)[0]
+                  sec=peoff+24+optsz
+                  ends=[]
+                  print('\n--- PE sections ---')
+                  for i in range(nsec):
+                      off=sec+i*40
+                      name=b[off:off+8].rstrip(b'\0').decode('ascii','replace')
+                      rawsz=struct.unpack_from('<I',b,off+16)[0]
+                      rawptr=struct.unpack_from('<I',b,off+20)[0]
+                      ends.append(rawptr+rawsz)
+                      print(name, 'rawptr',rawptr,'rawsize',rawsz,'end',rawptr+rawsz)
+                  ov=max(ends) if ends else 0
+                  print('overlay_start',ov,'overlay_size',len(b)-ov)
+                  print('overlay_head',b[ov:ov+64].hex())
+          PY
