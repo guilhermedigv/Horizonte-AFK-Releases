@@ -1,0 +1,62 @@
+name: Publicar Horizonte AFK 1.6.54 beta1 chat stability
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.54-beta.1-chat-stability.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar base publica
+        run: |
+          set -euo pipefail
+          test "$(jq -r '.version' latest.json)" = '1.6.53-beta.1'
+      - name: Baixar candidato exato validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf artifact && mkdir artifact
+          gh run download 34178690622 --repo "$GITHUB_REPOSITORY" --name 'Horizonte-AFK-v1.6.54-chat-stability-candidate' --dir artifact
+          EXE="$(find artifact -type f -name 'Horizonte_AFK.exe' -print -quit)"
+          test -n "$EXE"
+          cp "$EXE" Horizonte_AFK.exe
+          SIZE=$(stat -c '%s' Horizonte_AFK.exe)
+          SHA=$(sha256sum Horizonte_AFK.exe | cut -d' ' -f1)
+          test "$SIZE" = '5908992'
+          test "$SHA" = 'aa6a526b0a9873160f1af9ff282ac0a9d1940caa692a2c1f280f6c3e6d6bae91'
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+      - name: Publicar release e manifesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES='Corrige a estabilidade do CONEXÕES E CHAT para contas 24/7 já conectadas. A janela passa a priorizar a sessão Cloud que já foi anexada à conta e valida diretamente essa sessão antes de depender novamente da listagem geral, evitando o comportamento em que aparecia online por alguns segundos e depois mudava incorretamente para desconectada. Mantidas as correções das versões anteriores.'
+          gh release create 'v1.6.54-beta.1' Horizonte_AFK.exe --title 'Horizonte AFK v1.6.54-beta.1' --notes "$NOTES" --prerelease
+          cat > latest.json <<EOF
+          {
+            "product": "Horizonte AFK",
+            "channel": "beta",
+            "version": "1.6.54-beta.1",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "available": true,
+            "mandatory": false,
+            "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.54-beta.1/Horizonte_AFK.exe",
+            "sha256": "$SHA",
+            "size_bytes": $SIZE,
+            "encoding": "none",
+            "notes": "Estabiliza a vinculação da sessão 24/7 no CONEXÕES E CHAT para não alternar incorretamente de online para desconectada durante as atualizações da janela.",
+            "min_supported_version": "1.2.0"
+          }
+          EOF
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'release: v1.6.54-beta.1'
+          git push
