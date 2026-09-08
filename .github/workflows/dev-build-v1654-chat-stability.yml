@@ -1,0 +1,115 @@
+name: Dev build v1.6.54 stable cloud chat resolution
+on:
+  push:
+    branches: [dev/connection-chat-online-fix-v1.6.53]
+    paths:
+      - '.github/workflows/dev-build-v1654-chat-stability.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Download exact v1.6.53 base
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03'){throw "Unexpected base hash $h"}
+      - name: Patch page Cloud session resolver
+        shell: python
+        run: |
+          from pathlib import Path
+          import re,hashlib
+          a=Path('base.exe').read_bytes(); b=bytearray(a)
+          start=a.find(b'# Horizonte AFK Launcher')
+          if start<0: raise SystemExit('launcher source missing')
+          def replace_function(name,new_text):
+              global b
+              text=bytes(b)
+              s=text.find(('function '+name).encode(),start)
+              if s<0: raise SystemExit(name+' missing')
+              e=text.find(b'\nfunction ',s+10)
+              if e<0: raise SystemExit(name+' end missing')
+              e+=1
+              old_len=e-s
+              raw=new_text.encode('utf-8')
+              if len(raw)>old_len: raise SystemExit(f'{name} too large {len(raw)} > {old_len}')
+              gap=old_len-len(raw)
+              if gap==1: raw+=b'\n'
+              elif gap>=2: raw+=b'#'+b' '*(gap-2)+b'\n'
+              assert len(raw)==old_len
+              b[s:e]=raw
+              print(name,'old_len',old_len,'new_len',old_len-gap,'padding',gap)
+          new=r'''function Get-HZPageCloudSession($page,[bool]$force=$false) {
+              if($null-eq$page){return $null}
+              $account=Get-HZPageAccount $page;if($null-eq$account){return $null}
+              $sid=([string](Get-HZAccountCloudSessionId $account)).Trim();$nick=([string]$account.Nickname).Trim();$accountHost=([string]$account.Host).Trim();$port=Get-HZScalarInt $account.Port 7777
+              $pins=New-Object System.Collections.Generic.List[string]
+              try{$x=([string]$page.CloudSessionId).Trim();if($x){[void]$pins.Add($x)}}catch{}
+              try{$x=([string]$account.CloudSessionId).Trim();if($x-and!$pins.Contains($x)){[void]$pins.Add($x)}}catch{}
+              try{$x=([string]$script:cloudSessionId).Trim();if($x-and[string]$script:activeAccountId-eq[string]$account.Id-and!$pins.Contains($x)){[void]$pins.Add($x)}}catch{}
+              foreach($pin in @($pins)){
+                  try{
+                      $remote=Invoke-HZCloudApi 'GET' ('/v1/client/sessions/'+$pin) $null 4
+                      $rnick='';$rhost='';$rport=7777;try{$rnick=([string]$remote.configured_nickname).Trim()}catch{};if(!$rnick){try{$rnick=([string]$remote.nickname).Trim()}catch{}};try{$rhost=([string]$remote.host).Trim()}catch{};try{$rport=Get-HZScalarInt $remote.port 7777}catch{}
+                      if($rnick.Equals($nick,[StringComparison]::OrdinalIgnoreCase)-and$rhost.Equals($accountHost,[StringComparison]::OrdinalIgnoreCase)-and$rport-eq$port){
+                          if($page.PSObject.Properties.Name-notcontains'CloudSessionId'){$page|Add-Member -NotePropertyName CloudSessionId -NotePropertyValue $pin -Force}else{$page.CloudSessionId=$pin};try{Register-HZDeviceCloudSession $account $remote}catch{};return $remote
+                      }
+                  }catch{}
+              }
+              $sidMismatch=$false
+              foreach($remote in @(Get-HZCloudSessionsSafe $force)){
+                  $rsid='';$rnick='';$rhost='';$rport=7777;try{$rsid=([string]$remote.session_id).Trim()}catch{};try{$rnick=([string]$remote.configured_nickname).Trim()}catch{};if(!$rnick){try{$rnick=([string]$remote.nickname).Trim()}catch{}};try{$rhost=([string]$remote.host).Trim()}catch{};try{$rport=Get-HZScalarInt $remote.port 7777}catch{}
+                  $sameIdentity=($rnick.Equals($nick,[StringComparison]::OrdinalIgnoreCase)-and$rhost.Equals($accountHost,[StringComparison]::OrdinalIgnoreCase)-and$rport-eq$port);$sameSid=($sid-and$rsid.Equals($sid,[StringComparison]::OrdinalIgnoreCase))
+                  if($sameSid-and!$sameIdentity){$sidMismatch=$true;continue}
+                  if($sameIdentity){if($page.PSObject.Properties.Name-notcontains'CloudSessionId'){$page|Add-Member -NotePropertyName CloudSessionId -NotePropertyValue $rsid -Force}else{$page.CloudSessionId=$rsid};try{Register-HZDeviceCloudSession $account $remote}catch{};return $remote}
+              }
+              if($sidMismatch){try{Set-HZAccountCloudProperty $account 'CloudSessionId' '';Save-HZAccounts;Save-HZDeviceRegistry}catch{}}
+              return $null
+          }
+'''
+          replace_function('Get-HZPageCloudSession',new)
+          oldv=b'1.6.53-beta.1';newv=b'1.6.54-beta.1';p=0;count=0
+          while True:
+              i=b.find(oldv,p)
+              if i<0: break
+              b[i:i+len(oldv)]=newv;p=i+len(newv);count+=1
+          if count<1: raise SystemExit('version marker missing')
+          Path('Horizonte_AFK.exe').write_bytes(b)
+          print('version replacements',count,'sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - name: Parse patched functions
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$text=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('1.6.54-beta.1','CloudSessionId','/v1/client/sessions/','Get-HZCloudSessionsSafe $force','Register-HZDeviceCloudSession')){if(-not$text.Contains($m)){throw "Missing marker $m"}}
+          foreach($name in @('Get-HZPageCloudSession','Get-HZActivePageCloudSessionId','Sync-HZActivePageCloudAttachment','Get-HZConnectionStatusLabel','Get-HZConnectionChatText')){$s=$text.IndexOf('function '+$name);if($s-lt0){throw "Missing $name"};$e=$text.IndexOf("`nfunction ",$s+10);[void][scriptblock]::Create($text.Substring($s,$e-$s));Write-Host "Parse OK $name"}
+      - name: Simulate status-list miss with direct session still alive
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$text=[Text.Encoding]::UTF8.GetString($bytes);$s=$text.IndexOf('function Get-HZPageCloudSession');$e=$text.IndexOf("`nfunction ",$s+10);Invoke-Expression $text.Substring($s,$e-$s)
+          $script:accounts=@([pscustomobject]@{Id='acc1';Nickname='bluey';Host='ip3.horizonte-rp.com';Port=7777;CloudSessionId='sid1'});$script:cloudSessionId='sid1';$script:activeAccountId='acc1';$script:registered=0
+          $page=[pscustomobject]@{Id='p1';AccountId='acc1';Nick='bluey';ServerIndex=2}
+          function Get-HZPageAccount($p){return $script:accounts[0]};function Get-HZAccountCloudSessionId($a){return [string]$a.CloudSessionId};function Get-HZScalarInt($v,$d){return [int]$v};function Get-HZCloudSessionsSafe([bool]$force){return @()};function Register-HZDeviceCloudSession($a,$r){$script:registered++};function Save-HZAccounts{};function Save-HZDeviceRegistry{};function Set-HZAccountCloudProperty($a,[string]$n,$v){$a.$n=$v}
+          function Invoke-HZCloudApi($method,$path,$body,$timeout){if($path-ne'/v1/client/sessions/sid1'){throw 'unexpected path'};return [pscustomobject]@{session_id='sid1';configured_nickname='bluey';host='ip3.horizonte-rp.com';port=7777;state='online';phase='spawned'}}
+          $r=Get-HZPageCloudSession $page $false;if($null-eq$r-or$r.session_id-ne'sid1'){throw 'direct session fallback failed'};if([string]$page.CloudSessionId-ne'sid1'){throw 'page pin missing'};if($script:registered-lt1){throw 'session not registered'}
+          $r2=Get-HZPageCloudSession $page $false;if($null-eq$r2-or$r2.session_id-ne'sid1'){throw 'second refresh lost live session'};Write-Host 'Stable direct-session simulation OK'
+      - name: Validate PE shape and preserved invariants
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib,struct
+          a=Path('base.exe').read_bytes();b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b):raise SystemExit('PE size changed')
+          def pe(x):
+              o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
+              return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
+          if pe(a)!=pe(b):raise SystemExit('PE section map changed')
+          for m in (b'ServerClosed',b'learned',b'Open-HZUcpConnection',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration'):
+              if m not in b:raise SystemExit('Missing preserved marker '+repr(m))
+          print('final_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.54-chat-stability-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
