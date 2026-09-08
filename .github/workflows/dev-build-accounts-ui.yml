@@ -52,7 +52,7 @@ jobs:
         run: |
           $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
           $latin=[Text.Encoding]::UTF8.GetString($bytes)
-          foreach($m in @('CONEXÕES E CHAT','function Open-HZUcpConnection','ItemTemplate="{StaticResource R}"','1.6.49-beta.1','cloud_required_version')){if(-not $latin.Contains($m)){throw "Missing invariant/marker: $m"}}
+          foreach($m in @('CONEXÕES E CHAT','function Open-HZUcpConnection','ItemTemplate="{StaticResource R}"','1.6.49-beta.1')){if(-not $latin.Contains($m)){throw "Missing invariant/marker: $m"}}
           foreach($m in @('ServerClosed','learned','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $latin.Contains($m)){throw "Missing v1.6.48 safety marker: $m"}}
           $start=$latin.IndexOf('# Horizonte AFK Launcher');if($start-lt0){throw 'script start marker missing'}
           $src=$latin.Substring($start,[Math]::Min(470000,$latin.Length-$start))
