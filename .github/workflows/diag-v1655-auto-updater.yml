@@ -58,12 +58,37 @@ jobs:
             $type=$(if($null-eq$m){'<null>'}else{$m.GetType().FullName})
             Write-Host "$name restType=$type version=$([string]$m.version) available=$([string]$m.available)"
           }
-      - name: Verify no-BOM manifest parses like updater expects
+      - name: Validate full legacy updater decision download and replacement
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $u='https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/diag/v1655-auto-updater/diag/manifest-no-bom.json'
-          $m=Invoke-RestMethod -Uri ($u+'?t='+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -UseBasicParsing -TimeoutSec 7 -Headers @{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK/1.6.55-beta.1'}
-          if([string]$m.version-ne'1.6.58-beta.1'){throw "No-BOM did not parse; type=$($m.GetType().FullName)"}
-          if(-not $m.available){throw 'No-BOM available false'}
-          Write-Host 'NO_BOM_PARSE_OK'
+          function V([string]$v){$c=($v-replace'^[vV]','').Split('-')[0];try{return [version]$c}catch{return [version]'0.0.0'}}
+          $headers=@{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK/1.6.55-beta.1'}
+          $u='https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/latest.json'
+          $m=Invoke-RestMethod -Uri ($u+'?t='+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -UseBasicParsing -TimeoutSec 7 -Headers $headers
+          if($m.GetType().FullName-ne'System.Management.Automation.PSCustomObject'){throw "Unexpected manifest type: $($m.GetType().FullName)"}
+          $rv=V([string]$m.version
+          );$lv=V('1.6.55-beta.1')
+          Write-Host "legacy_decision local=$lv remote=$rv"
+          if($rv-le$lv){throw 'Legacy updater would not consider release newer'}
+          if(-not $m.available){throw 'Release is not available'}
+          if(([string]$m.sha256)-notmatch'^[a-fA-F0-9]{64}$'){throw 'Invalid remote sha'}
+          $new='diag-out/Horizonte_AFK.new.exe'
+          Invoke-WebRequest -Uri ([string]$m.download_url) -UseBasicParsing -TimeoutSec 60 -OutFile $new -Headers $headers
+          $h=(Get-FileHash $new -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size=(Get-Item $new).Length
+          Write-Host "legacy_download hash=$h size=$size"
+          if($h-ne([string]$m.sha256).ToLowerInvariant()){throw 'Legacy download hash mismatch'}
+          if($size-ne[int64]$m.size_bytes){throw 'Legacy download size mismatch'}
+          $bytes=[IO.File]::ReadAllBytes($new);if($bytes[0]-ne77-or$bytes[1]-ne90){throw 'Downloaded EXE invalid'}
+          $self='diag-out/Horizonte_AFK.self-test.exe'
+          $stage=$self+'.hz-update';$backup=$self+'.hz-backup'
+          Copy-Item 'diag-out/Horizonte_AFK.exe' $self -Force
+          Copy-Item $new $stage -Force
+          [IO.File]::Replace($stage,$self,$backup)
+          $after=(Get-FileHash $self -Algorithm SHA256).Hash.ToLowerInvariant()
+          $beforeBackup=(Get-FileHash $backup -Algorithm SHA256).Hash.ToLowerInvariant()
+          Write-Host "replacement_after=$after backup=$beforeBackup"
+          if($after-ne$h){throw 'Replacement did not install remote EXE'}
+          if($beforeBackup-ne'0079d132ca1963e1073c8914f4e321fe65f0894ae6a4875ab88db8cbf7dc941c'){throw 'Replacement backup is not original v1.6.55'}
+          Write-Host 'LEGACY_FULL_UPDATE_CHAIN_OK'
