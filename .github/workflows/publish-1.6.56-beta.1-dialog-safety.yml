@@ -1,0 +1,92 @@
+name: Publicar Horizonte AFK 1.6.56 beta1 dialog safety
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-1.6.56-beta.1-dialog-safety.yml'
+      - '.release-staging/v1.6.56/build.ps1'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar versão pública de origem
+        shell: powershell
+        run: |
+          $m=Get-Content latest.json -Raw -Encoding UTF8|ConvertFrom-Json
+          if([string]$m.version-ne'1.6.55-beta.1'){throw "Origem pública inesperada: $($m.version)"}
+          if([string]$m.sha256-ne'0079d132ca1963e1073c8914f4e321fe65f0894ae6a4875ab88db8cbf7dc941c'){throw 'Hash da origem pública inesperado'}
+      - name: Reproduzir candidato validado
+        shell: powershell
+        run: ./.release-staging/v1.6.56/build.ps1
+      - name: Validar artefato exato
+        shell: powershell
+        run: |
+          $exe='.release-staging/v1.6.56/candidate/Horizonte_AFK.exe'
+          $size=(Get-Item $exe).Length
+          $sha=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($size-ne5908992){throw "Tamanho inesperado: $size"}
+          if($sha-ne'a62da3c84cf4531ff8547a720571dd81a603bccc559b1cd1fa4f84ac7cdcd82d'){throw "Hash diferente do candidato validado: $sha"}
+          "HZ_SHA=$sha"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+          "HZ_SIZE=$size"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+      - name: Publicar release e conferir download
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $tag='v1.6.56-beta.1'
+          $exe='.release-staging/v1.6.56/candidate/Horizonte_AFK.exe'
+          @'
+          Corrige os dialogs quando várias contas 24/7 conectam ao mesmo tempo.
+
+          - Cada dialog Cloud fica vinculado à sessão e à conta que realmente o gerou.
+          - Respostas de login/spawn não são mais enviadas usando a conta que estiver selecionada por último.
+          - O aprendizado de senha/escolhas é salvo somente no perfil dono do dialog.
+          - Dialogs pendentes de várias contas são exibidos um por vez, sem uma conta sobrescrever a outra.
+          - Reconexões recebem uma geração de processo, evitando que um novo dialog Seq=1 seja confundido com um dialog antigo.
+          - Preserva as correções de reconexão, nick reservado e sessão única da Cloud 0.5.15.
+          '@ | Set-Content RELEASE_NOTES_1.6.56.md -Encoding UTF8
+          gh release view $tag *> $null
+          if($LASTEXITCODE-eq0){
+            gh release upload $tag $exe --clobber
+            gh release edit $tag --title 'Horizonte AFK v1.6.56-beta.1' --notes-file RELEASE_NOTES_1.6.56.md --prerelease --latest=false
+          }else{
+            gh release create $tag $exe --target main --title 'Horizonte AFK v1.6.56-beta.1' --notes-file RELEASE_NOTES_1.6.56.md --prerelease --latest=false
+          }
+          New-Item -ItemType Directory -Force verify|Out-Null
+          gh release download $tag --pattern Horizonte_AFK.exe --dir verify
+          $got=(Get-FileHash verify/Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($got-ne$env:HZ_SHA){throw "Asset publicado difere do validado: $got"}
+      - name: Atualizar manifestos públicos somente após verificação
+        shell: powershell
+        run: |
+          $now=[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+          $url='https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.56-beta.1/Horizonte_AFK.exe'
+          $notes='Corrige dialogs simultâneos de múltiplas contas: cada dialog agora é vinculado à sessão/conta dona, respostas são roteadas para o session_id correto e reconexões usam geração única de dialog. Requer Cloud 0.5.15.'
+          $latest=[ordered]@{product='Horizonte AFK';channel='beta';version='1.6.56-beta.1';published_at=$now;available=$true;mandatory=$false;download_url=$url;sha256=$env:HZ_SHA;size_bytes=[int64]$env:HZ_SIZE;encoding='none';notes=$notes;min_supported_version='1.2.0'}
+          $latest|ConvertTo-Json -Depth 8|Set-Content latest.json -Encoding UTF8
+          $latest|ConvertTo-Json -Depth 8|Set-Content release-candidate.json -Encoding UTF8
+          "$($env:HZ_SHA)  Horizonte_AFK.exe"|Set-Content SHA256SUMS.txt -Encoding ASCII
+          @'
+          # Horizonte AFK v1.6.56-beta.1
+
+          Correção de isolamento dos dialogs de múltiplas contas 24/7.
+
+          Cada dialog agora carrega a sessão e a conta de origem. Login, senha, spawn e escolhas são respondidos e aprendidos somente no perfil correto. Dialogs de várias sessões ficam coordenados um por vez e uma reinicialização do RakSAMP recebe uma nova geração, evitando colisão de Seq após reconnect.
+
+          Cloud mínima para este fluxo: 0.5.15.
+          '@ | Set-Content RELEASE_NOTES.md -Encoding UTF8
+          try{
+            $c=Get-Content release-changelog.json -Raw -Encoding UTF8|ConvertFrom-Json
+            $entry=[pscustomobject]@{version='1.6.56-beta.1';date='2026-09-08';changes=@('Dialogs Cloud passam a ser vinculados à sessão e conta que os originaram.','Respostas de login/spawn usam o session_id dono do dialog, mesmo se outra conta for selecionada depois.','O aprendizado automático grava apenas no perfil correto.','Sessões simultâneas com dialog pendente são coordenadas uma por vez.','A Cloud 0.5.15 adiciona geração do processo para impedir colisões do Seq após reconexão.')}
+            $versions=@($entry)+@($c.versions|Where-Object{[string]$_.version-ne'1.6.56-beta.1'})
+            [ordered]@{product=[string]$c.product;channel=[string]$c.channel;versions=$versions}|ConvertTo-Json -Depth 10|Set-Content release-changelog.json -Encoding UTF8
+          }catch{}
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json release-candidate.json SHA256SUMS.txt RELEASE_NOTES.md release-changelog.json
+          git commit -m 'release: v1.6.56-beta.1 dialog isolation'
+          git push
