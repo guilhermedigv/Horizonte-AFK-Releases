@@ -1,4 +1,4 @@
-name: Dev inspect v1.6.52 chat online attachment
+name: Dev build v1.6.53 cloud chat reattachment fix
 on:
   push:
     branches: [dev/connection-chat-online-fix-v1.6.53]
@@ -7,35 +7,93 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     steps:
-      - name: Download exact v1.6.52
+      - name: Download exact v1.6.52 base
+        shell: pwsh
         run: |
-          set -euo pipefail
-          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.52-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
-          echo 'ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f  Horizonte_AFK.exe' | sha256sum -c -
-      - name: Print cloud/page helpers
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.52-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne 'ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f'){throw "Unexpected base hash $h"}
+      - name: Patch account-to-cloud reattachment
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
-          import re
-          b=Path('Horizonte_AFK.exe').read_bytes()
-          start=b.find(b'# Horizonte AFK Launcher')
-          src=b[start:start+750000].decode('utf-8','replace')
-          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
-          wanted={
-            'Get-HZActivePageCloudSessionId','Get-HZActivePageCloudSession','Get-HZPageCloudSession',
-            'Get-HZPageAccount','Attach-HZPageCloudSession','Reset-HZAttachedCloudUi','Sync-HZActivePageCloudAttachment',
-            'Get-HZAccountPageById','Get-HZActiveAccountPage','Get-HZCloudSessionById','Get-HZCloudSessionsSafe',
-            'Get-HZConnectionStatusLabel','Get-HZConnectionChatText','Send-HZServerText','Open-HZUcpConnection',
-            'Sync-HZAccountsFromCloud','Ensure-HZAccountForValues','Normalize-HZAccounts'
+          import re,hashlib
+          a=Path('base.exe').read_bytes(); b=bytearray(a)
+          sm=b'function Refresh-HZAccountsCenter'; em=b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.'
+          s=a.find(sm); e=a.find(em,s)
+          if s<0 or e<0: raise SystemExit('Account Center region missing')
+          region=a[s:e].decode('utf-8')
+          pat=r'(?m)^function Open-HZUcpConnection\([^\n]*\)\{[^\n]*\}\r?\n?'
+          m=re.search(pat,region)
+          if not m: raise SystemExit('Open-HZUcpConnection missing')
+          new="""function Open-HZUcpConnection($v){$id=[string]$v.Id;$n=([string]$v.Nick).Trim();$i=Get-HZScalarInt $v.I -1;if(!$id-or!$n){throw 'Conta indisponível.'};$p=$null;foreach($x in @($script:hzAccountPages)){if([string]$x.AccountId-eq$id){$p=$x;break}};if($null-eq$p){foreach($x in @($script:hzAccountPages)){if(([string]$x.Nick).Equals($n,[StringComparison]::OrdinalIgnoreCase)-and[int]$x.ServerIndex-eq$i){$p=$x;break}}};if($null-eq$p){foreach($x in @($script:hzAccountPages)){if(![string]$x.AccountId-and![string]$x.Nick){$p=$x;break}}};if($null-eq$p){$p=New-HZAccountPage $false $n $i $id $false};if($null-eq$p){throw 'Não foi possível abrir a conta.'};$p.AccountId=$id;$p.Nick=$n;$p.ServerIndex=$i;Select-HZAccountPage ([string]$p.Id);try{$a=Ensure-HZAccountCurrent;if($a){$p.AccountId=[string]$a.Id;Save-HZAccountPages};Sync-HZActivePageCloudAttachment $true}catch{};Show-HZConnectionCenter}\n"""
+          region=region[:m.start()]+new+region[m.end():]
+          old_len=e-s
+          if len(region.encode('utf-8'))>old_len:
+              # Collapse only XML inter-tag whitespace in the account-center here-string.
+              region=re.sub(r'>\r?\n\s*<','><',region)
+          raw=region.encode('utf-8')
+          if len(raw)>old_len: raise SystemExit(f'patched region too large {len(raw)} > {old_len}')
+          gap=old_len-len(raw)
+          if gap==1: raw+=b'\n'
+          elif gap>=2: raw+=b'#'+b' '*(gap-2)+b'\n'
+          if len(raw)!=old_len: raise SystemExit('fixed-size region mismatch')
+          b[s:e]=raw
+          oldv=b'1.6.52-beta.1'; newv=b'1.6.53-beta.1'; p=0; vc=0
+          while True:
+              j=b.find(oldv,p)
+              if j<0: break
+              b[j:j+len(oldv)]=newv; p=j+len(newv); vc+=1
+          if vc<1: raise SystemExit('version marker missing')
+          Path('Horizonte_AFK.exe').write_bytes(b)
+          print('padding',gap,'version_replacements',vc,'sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - name: Parse runtime-critical PowerShell
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$text=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('1.6.53-beta.1','function Open-HZUcpConnection($v)','Ensure-HZAccountCurrent','Sync-HZActivePageCloudAttachment $true','Show-HZConnectionCenter')){if(-not$text.Contains($m)){throw "Missing marker $m"}}
+          foreach($name in @('Open-HZUcpConnection','Show-HZAccountsCenter','Get-HZPageCloudSession','Sync-HZActivePageCloudAttachment','Show-HZConnectionCenter')){
+            $s=$text.IndexOf('function '+$name);if($s-lt0){throw "Missing function $name"};$e=$text.IndexOf("`nfunction ",$s+10);if($e-lt0){$e=[Math]::Min($text.Length,$s+50000)};[void][scriptblock]::Create($text.Substring($s,$e-$s));Write-Host "Parse OK: $name"
           }
-          for i,m in enumerate(funcs):
-              n=m.group(1)
-              if n not in wanted: continue
-              e=funcs[i+1].start() if i+1<len(funcs) else len(src)
-              print(f'===== {n} BEGIN =====')
-              print(src[m.start():e].rstrip())
-              print(f'===== {n} END =====')
-          PY
+      - name: Simulate stale account handoff
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$text=[Text.Encoding]::UTF8.GetString($bytes)
+          $s=$text.IndexOf('function Open-HZUcpConnection');$e=$text.IndexOf("`nfunction ",$s+10);$fn=$text.Substring($s,$e-$s);[void][scriptblock]::Create($fn);Invoke-Expression $fn
+          $script:hzAccountPages=@([pscustomobject]@{Id='p1';AccountId='old';Nick='bluey';ServerIndex=2})
+          $script:selected='';$script:forced=$false;$script:shown=$false
+          function Get-HZScalarInt($v,$d){return [int]$v}
+          function New-HZAccountPage([bool]$select,[string]$nick,[int]$serverIndex,[string]$accountId,[bool]$isCloud){$o=[pscustomobject]@{Id='new';AccountId=$accountId;Nick=$nick;ServerIndex=$serverIndex};$script:hzAccountPages+= $o;return $o}
+          function Select-HZAccountPage([string]$id){$script:selected=$id}
+          function Ensure-HZAccountCurrent {return [pscustomobject]@{Id='fresh-account'}}
+          function Save-HZAccountPages {$script:saved=$true}
+          function Sync-HZActivePageCloudAttachment([bool]$force){$script:forced=$force}
+          function Show-HZConnectionCenter {$script:shown=$true}
+          Open-HZUcpConnection ([pscustomobject]@{Id='old';Nick='bluey';I=2})
+          if($script:selected-ne'p1'){throw 'page not selected'}
+          if([string]$script:hzAccountPages[0].AccountId-ne'fresh-account'){throw 'account was not re-ensured from selected page fields'}
+          if(!$script:forced){throw 'cloud attachment was not force-refreshed'}
+          if(!$script:shown){throw 'chat window was not opened'}
+          Write-Host 'Handoff simulation OK'
+      - name: Validate PE shape and preserved cloud fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib,struct
+          a=Path('base.exe').read_bytes();b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b):raise SystemExit('PE size changed')
+          def pe(x):
+              o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
+              return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
+          if pe(a)!=pe(b):raise SystemExit('PE section map changed')
+          for m in (b'ServerClosed',b'learned',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration',b'chat_command_v1'):
+              if m not in b:raise SystemExit('Missing preserved marker '+repr(m))
+          print('final_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.53-cloud-chat-reattach-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
