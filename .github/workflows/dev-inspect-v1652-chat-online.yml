@@ -1,4 +1,4 @@
-name: Dev inspect v1.6.53 chat persistence helpers
+name: Dev build v1.6.54 stable chat attachment
 on:
   push:
     branches: [dev/connection-chat-online-fix-v1.6.53]
@@ -7,32 +7,74 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     steps:
-      - name: Download exact v1.6.53
+      - name: Download exact v1.6.53 base
+        shell: pwsh
         run: |
-          set -euo pipefail
-          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
-          echo '91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03  Horizonte_AFK.exe' | sha256sum -c -
-      - name: Print chat/session persistence helpers
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03'){throw "Unexpected base hash $h"}
+      - name: Patch Cloud resolver to keep attached live session stable
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
-          import re
-          b=Path('Horizonte_AFK.exe').read_bytes(); start=b.find(b'# Horizonte AFK Launcher'); src=b[start:start+850000].decode('utf-8','replace')
-          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
-          wanted={
-            'Ensure-HZAccountCurrent','Get-HZAccountById','Load-HZAccounts','Save-HZAccounts','Get-HZCloudSessionById',
-            'Register-HZDeviceCloudSession','Set-HZAccountCloudProperty','Get-HZPageCloudSession','Sync-HZActivePageCloudAttachment',
-            'Get-HZActivePageCloudSession','Get-HZActivePageCloudSessionId','Start-HZCloudTimer','Stop-HZCloudTimer','Update-HZCloudSession',
-            'Refresh-HZConnectionWindow','Get-HZConnectionStatusLabel','Get-HZConnectionChatText','Get-HZCloudRawConsole','Open-HZUcpConnection'
+          import hashlib
+          a=Path('base.exe').read_bytes();b=bytearray(a);root=a.find(b'# Horizonte AFK Launcher')
+          s=a.find(b'function Get-HZPageCloudSession',root);e=a.find(b'\nfunction ',s+10)+1
+          if s<0 or e<=s: raise SystemExit('Get-HZPageCloudSession range missing')
+          old=e-s
+          new=r'''function Get-HZPageCloudSession($page,[bool]$force=$false){
+          if($null-eq$page){return $null};$a=Get-HZPageAccount $page;if($null-eq$a){return $null};$sid=([string](Get-HZAccountCloudSessionId $a)).Trim();$n=([string]$a.Nickname).Trim();$h=([string]$a.Host).Trim();$p=Get-HZScalarInt $a.Port 7777
+          $cur=([string]$script:cloudSessionId).Trim();if($cur-and[string]$script:activeAccountId-eq[string]$a.Id){try{$r=Invoke-HZCloudApi 'GET' ('/v1/client/sessions/'+$cur) $null 4;if($r){return $r}}catch{}}
+          $pin='';try{$pin=([string]$a.CloudSessionId).Trim()}catch{};if($pin){try{$r=Invoke-HZCloudApi 'GET' ('/v1/client/sessions/'+$pin) $null 4;$rn='';try{$rn=([string]$r.configured_nickname).Trim()}catch{};if(!$rn){try{$rn=([string]$r.nickname).Trim()}catch{}};$rh='';try{$rh=([string]$r.host).Trim()}catch{};$rp=7777;try{$rp=Get-HZScalarInt $r.port 7777}catch{};if($rn.Equals($n,[StringComparison]::OrdinalIgnoreCase)-and$rh.Equals($h,[StringComparison]::OrdinalIgnoreCase)-and$rp-eq$p){try{Register-HZDeviceCloudSession $a $r}catch{};return $r}}catch{}}
+          $bad=$false;foreach($r in @(Get-HZCloudSessionsSafe $force)){$rs='';$rn='';$rh='';$rp=7777;try{$rs=([string]$r.session_id).Trim()}catch{};try{$rn=([string]$r.configured_nickname).Trim()}catch{};if(!$rn){try{$rn=([string]$r.nickname).Trim()}catch{}};try{$rh=([string]$r.host).Trim()}catch{};try{$rp=Get-HZScalarInt $r.port 7777}catch{};$same=($rn.Equals($n,[StringComparison]::OrdinalIgnoreCase)-and$rh.Equals($h,[StringComparison]::OrdinalIgnoreCase)-and$rp-eq$p);if($sid-and$rs.Equals($sid,[StringComparison]::OrdinalIgnoreCase)-and!$same){$bad=$true;continue};if($same){try{Register-HZDeviceCloudSession $a $r}catch{};return $r}}
+          if($bad){try{Set-HZAccountCloudProperty $a 'CloudSessionId' '';Save-HZAccounts;Save-HZDeviceRegistry}catch{}};return $null
           }
-          for i,m in enumerate(funcs):
-              n=m.group(1)
-              if n not in wanted: continue
-              e=funcs[i+1].start() if i+1<len(funcs) else len(src)
-              print(f'===== {n} BEGIN =====')
-              print(src[m.start():e].rstrip())
-              print(f'===== {n} END =====')
-          PY
+'''.encode('utf-8')
+          if len(new)>old:raise SystemExit(f'new resolver too large {len(new)} > {old}')
+          gap=old-len(new);new+=b'#'+b' '*(gap-2)+b'\n' if gap>=2 else b'\n' if gap==1 else b''
+          if len(new)!=old:raise SystemExit('resolver fixed-size mismatch')
+          b[s:e]=new
+          oldv=b'1.6.53-beta.1';newv=b'1.6.54-beta.1';p=0;c=0
+          while True:
+              i=b.find(oldv,p)
+              if i<0:break
+              b[i:i+len(oldv)]=newv;p=i+len(newv);c+=1
+          if c<1:raise SystemExit('version marker missing')
+          Path('Horizonte_AFK.exe').write_bytes(b);print('resolver_old',old,'resolver_new',old-gap,'padding',gap,'version_replacements',c,'sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - name: Parse runtime-critical functions
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$t=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('1.6.54-beta.1','function Get-HZPageCloudSession','/v1/client/sessions/','CloudSessionId','Get-HZCloudSessionsSafe $force')){if(-not$t.Contains($m)){throw "Missing marker $m"}}
+          foreach($n in @('Get-HZPageCloudSession','Get-HZActivePageCloudSessionId','Sync-HZActivePageCloudAttachment','Get-HZConnectionStatusLabel','Get-HZConnectionChatText','Open-HZUcpConnection')){$s=$t.IndexOf('function '+$n);$e=$t.IndexOf("`nfunction ",$s+10);if($s-lt0-or$e-lt0){throw "Missing function $n"};[void][scriptblock]::Create($t.Substring($s,$e-$s));Write-Host "Parse OK $n"}
+      - name: Simulate repeated refresh after status-list miss
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'));$t=[Text.Encoding]::UTF8.GetString($bytes);$s=$t.IndexOf('function Get-HZPageCloudSession');$e=$t.IndexOf("`nfunction ",$s+10);Invoke-Expression $t.Substring($s,$e-$s)
+          $a=[pscustomobject]@{Id='acc1';Nickname='bluey';Host='ip3.horizonte-rp.com';Port=7777;CloudSessionId='sid1'};$page=[pscustomobject]@{AccountId='acc1'};$script:cloudSessionId='sid1';$script:activeAccountId='acc1';$script:direct=0
+          function Get-HZPageAccount($x){return $a};function Get-HZAccountCloudSessionId($x){return [string]$x.CloudSessionId};function Get-HZScalarInt($v,$d){return [int]$v};function Get-HZCloudSessionsSafe([bool]$f){return @()};function Register-HZDeviceCloudSession($x,$r){};function Set-HZAccountCloudProperty($x,[string]$n,$v){$x.$n=$v};function Save-HZAccounts{};function Save-HZDeviceRegistry{}
+          function Invoke-HZCloudApi($m,$path,$body,$timeout){$script:direct++;return [pscustomobject]@{session_id='sid1';configured_nickname='bluey';host='ip3.horizonte-rp.com';port=7777;state='online';phase='spawned'}}
+          1..5|ForEach-Object{$r=Get-HZPageCloudSession $page $false;if($null-eq$r-or$r.session_id-ne'sid1'){throw 'live session lost during repeated refresh'}}
+          if($script:direct-lt5){throw 'direct live resolver not exercised'};Write-Host 'Repeated live-session refresh simulation OK'
+      - name: Validate PE shape and preserved fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib,struct
+          a=Path('base.exe').read_bytes();b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b):raise SystemExit('PE size changed')
+          def pe(x):
+              o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
+              return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
+          if pe(a)!=pe(b):raise SystemExit('PE section map changed')
+          for m in (b'ServerClosed',b'learned',b'Open-HZUcpConnection',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration'):
+              if m not in b:raise SystemExit('Missing preserved marker '+repr(m))
+          print('final_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.54-chat-stability-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
