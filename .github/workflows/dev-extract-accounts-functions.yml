@@ -1,0 +1,67 @@
+name: Dev extract account functions
+on:
+  push:
+    branches:
+      - dev/accounts-ui-v1.6.49
+    paths:
+      - '.github/workflows/dev-extract-accounts-functions.yml'
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download validated current binary
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
+          echo '6503925d26779557bc834e53bc96c886b6192e23ca54ef9eefb638ec9f4127b6  Horizonte_AFK.exe' | sha256sum -c -
+      - name: Extract relevant embedded PowerShell functions
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          b=Path('Horizonte_AFK.exe').read_bytes()
+          start=b.find(b'# Horizonte AFK Launcher')
+          if start < 0: raise SystemExit('launcher script marker not found')
+          # Source is embedded as UTF-8 text in .rdata. Restrict to the known script region.
+          src=b[start:1700000].decode('utf-8','replace')
+          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
+          print('SCRIPT_START',start)
+          print('FUNCTION_COUNT',len(funcs))
+          wanted=[]
+          for i,m in enumerate(funcs):
+              name=m.group(1)
+              if any(k in name.lower() for k in ('account','connection','chat','page','ucp')):
+                  wanted.append(name)
+          print('RELEVANT_FUNCTIONS')
+          for n in wanted: print(n)
+          print('END_RELEVANT_FUNCTIONS')
+          exact={
+            'Refresh-HZAccountsCenter','Show-HZAccountsCenter',
+            'Get-HZConnectionChatText','Update-HZConnectionWindow','Show-HZConnectionWindow',
+            'Get-HZConnectionStatusText','Get-HZActivePage','Select-HZAccountPage',
+            'Select-HZPage','Set-HZActivePage','Find-HZPageForAccount','Get-HZAccountPageForAccount'
+          }
+          for i,m in enumerate(funcs):
+              name=m.group(1)
+              if name not in exact: continue
+              end=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              chunk=src[m.start():end]
+              print(f'\n===== FUNCTION {name} BEGIN =====')
+              print(chunk.rstrip())
+              print(f'===== FUNCTION {name} END =====')
+          # Also print the account-center XAML/function neighborhood and connection window neighborhood.
+          for label, needle, radius in [
+              ('ACCOUNT_CENTER_NEIGHBORHOOD','function Show-HZAccountsCenter',22000),
+              ('CONNECTION_WINDOW_NEIGHBORHOOD','CONEXÃO E CHAT',18000),
+              ('PAGE_SELECTION_NEIGHBORHOOD','function Select-HZAccountPage',12000),
+          ]:
+              pos=src.find(needle)
+              if pos>=0:
+                  lo=max(0,pos-3000); hi=min(len(src),pos+radius)
+                  print(f'\n===== {label} BEGIN =====')
+                  print(src[lo:hi])
+                  print(f'===== {label} END =====')
+          PY
