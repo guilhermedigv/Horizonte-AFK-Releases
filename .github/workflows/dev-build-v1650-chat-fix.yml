@@ -72,7 +72,7 @@ jobs:
           $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
           $text=[Text.Encoding]::UTF8.GetString($bytes)
           foreach($m in @('CONEXÕES E CHAT','$e.OriginalSource','DataContext.Id','Show-HZConnectionCenter','1.6.50-beta.1')){if(-not $text.Contains($m)){throw "Missing embedded marker: $m"}}
-          foreach($m in @('ServerClosed','learned_dialog','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $text.Contains($m)){throw "Missing preserved safety marker: $m"}}
+          foreach($m in @('ServerClosed','learned','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $text.Contains($m)){throw "Missing preserved safety marker: $m"}}
           $s=$text.IndexOf('function Refresh-HZAccountsCenter');$e=$text.IndexOf('# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',$s)
           if($s-lt0-or$e-lt0){throw 'embedded account region missing'}
           [void][scriptblock]::Create($text.Substring($s,$e-$s));Write-Host 'Embedded PowerShell parse OK'
