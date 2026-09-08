@@ -1,10 +1,6 @@
 name: Publicar Horizonte AFK 1.6.58 beta1 desktop retirement
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'desktop-retirement/**'
-      - '.github/workflows/publish-1.6.58-beta.1-desktop-retirement.yml'
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -16,11 +12,12 @@ jobs:
         with:
           go-version: '1.22.12'
           cache: false
-      - name: Confirmar origem publica
+      - name: Confirmar release final existente
         shell: powershell
         run: |
           $m=Get-Content latest.json -Raw -Encoding UTF8|ConvertFrom-Json
-          if([string]$m.version-ne'1.6.57-beta.1'){throw "Origem publica inesperada: $($m.version)"}
+          if([string]$m.version-ne'1.6.58-beta.1'){throw "Manifesto final inesperado: $($m.version)"}
+          if([string]$m.sha256-ne'0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49'){throw 'Hash final inesperado'}
       - name: Testar aviso final
         shell: powershell
         working-directory: desktop-retirement
@@ -40,75 +37,34 @@ jobs:
           $shaA=(Get-FileHash $a -Algorithm SHA256).Hash.ToLowerInvariant()
           $shaB=(Get-FileHash $b -Algorithm SHA256).Hash.ToLowerInvariant()
           if($shaA-ne$shaB){throw "Build nao reproduzivel: $shaA != $shaB"}
+          if($shaA-ne'0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49'){throw "Hash diferente da release final: $shaA"}
           $size=(Get-Item $a).Length
-          if($size-lt500000-or$size-gt2500000){throw "Tamanho inesperado: $size"}
+          if($size-ne1485312){throw "Tamanho diferente da release final: $size"}
           $bytes=[IO.File]::ReadAllBytes($a)
           if($bytes[0]-ne0x4D-or$bytes[1]-ne0x5A){throw 'Executavel PE invalido'}
           $src=Get-Content desktop-retirement/main.go -Raw -Encoding UTF8
           if(-not $src.Contains('Menu descontinuado')){throw 'Aviso de descontinuacao ausente'}
           if(-not $src.Contains('hzrp.discloud.app/panel')){throw 'URL do painel ausente'}
           if($src.Contains('RakSAMPClient')-or$src.Contains('Horizonte-AFK.ps1')){throw 'O EXE final nao pode carregar o runtime antigo'}
-          "HZ_SHA=$shaA"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
-          "HZ_SIZE=$size"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
-      - name: Publicar release exata e verificar download
+      - name: Verificar asset publicado
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          $tag='v1.6.58-beta.1'
-          $exe='desktop-retirement/candidateA/Horizonte_AFK.exe'
-          @'
-          O menu desktop do Horizonte AFK foi encerrado.
-
-          - Ao abrir o EXE, agora aparece somente um aviso de que o menu foi descontinuado.
-          - O menu antigo, PowerShell/WPF e RakSAMP local nao sao mais carregados.
-          - O aviso oferece abrir o painel web da Discloud; ao recusar ou fechar, o EXE encerra.
-          - As contas AFK 24/7 continuam executando na Cloud independentemente do EXE.
-          - Painel oficial: https://hzrp.discloud.app/panel
-          '@ | Set-Content RELEASE_NOTES_1.6.58.md -Encoding UTF8
-          $oldPreference=$ErrorActionPreference
-          $ErrorActionPreference='SilentlyContinue'
-          gh release view $tag *> $null
-          $exists=($LASTEXITCODE-eq0)
-          $ErrorActionPreference=$oldPreference
-          if($exists){
-            gh release upload $tag $exe --clobber
-            gh release edit $tag --title 'Horizonte AFK v1.6.58-beta.1 - Menu desktop descontinuado' --notes-file RELEASE_NOTES_1.6.58.md --prerelease --latest=false
-          }else{
-            gh release create $tag $exe --target main --title 'Horizonte AFK v1.6.58-beta.1 - Menu desktop descontinuado' --notes-file RELEASE_NOTES_1.6.58.md --prerelease --latest=false
-          }
           New-Item -ItemType Directory -Force verify|Out-Null
-          gh release download $tag --pattern Horizonte_AFK.exe --dir verify
+          gh release download v1.6.58-beta.1 --pattern Horizonte_AFK.exe --dir verify
           $got=(Get-FileHash verify/Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           $gotSize=(Get-Item verify/Horizonte_AFK.exe).Length
-          if($got-ne$env:HZ_SHA){throw "Asset publicado difere do validado: $got"}
-          if($gotSize-ne[int64]$env:HZ_SIZE){throw "Tamanho publicado difere do validado: $gotSize"}
-      - name: Encerrar menu antigo nos manifestos publicos
+          if($got-ne'0be04dc927ea5115f9f73574001f188b2bb1b502e0ad61707f7a5c53e4e0ba49'){throw "Asset publicado inesperado: $got"}
+          if($gotSize-ne1485312){throw "Tamanho publicado inesperado: $gotSize"}
+      - name: Garantir manifestos JSON sem BOM
         shell: powershell
         run: |
-          $now=[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
-          $url='https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.58-beta.1/Horizonte_AFK.exe'
-          $notes='O menu desktop foi descontinuado. Esta atualizacao final substitui o painel antigo por um aviso leve e direciona para o painel web da Discloud. As sessoes 24/7 continuam na Cloud.'
-          $latest=[ordered]@{product='Horizonte AFK';channel='beta';version='1.6.58-beta.1';published_at=$now;available=$true;mandatory=$true;download_url=$url;sha256=$env:HZ_SHA;size_bytes=[int64]$env:HZ_SIZE;encoding='none';notes=$notes;min_supported_version='1.2.0'}
-          $latest|ConvertTo-Json -Depth 8|Set-Content latest.json -Encoding UTF8
-          $latest|ConvertTo-Json -Depth 8|Set-Content release-candidate.json -Encoding UTF8
-          "$($env:HZ_SHA)  Horizonte_AFK.exe"|Set-Content SHA256SUMS.txt -Encoding ASCII
-          @'
-          # Horizonte AFK v1.6.58-beta.1
-
-          Encerramento do menu desktop.
-
-          O executavel local nao carrega mais o painel antigo nem o runtime AFK. Ao abrir, mostra somente o aviso de descontinuacao e oferece acesso ao painel web da Discloud. As contas 24/7 permanecem na Cloud.
-          '@ | Set-Content RELEASE_NOTES.md -Encoding UTF8
-          try{
-            $c=Get-Content release-changelog.json -Raw -Encoding UTF8|ConvertFrom-Json
-            $entry=[pscustomobject]@{version='1.6.58-beta.1';date='2026-09-08';changes=@('Menu desktop oficialmente descontinuado.','EXE final mostra apenas aviso e encerra.','Opcao de abrir o painel web da Discloud pelo aviso.','Runtime local antigo nao e mais carregado.','Atualizacao marcada como obrigatoria para substituir clientes antigos.','Contas AFK continuam 24/7 na Cloud.')} 
-            $versions=@($entry)+@($c.versions|Where-Object{[string]$_.version-ne'1.6.58-beta.1'})
-            [ordered]@{product=[string]$c.product;channel=[string]$c.channel;versions=$versions}|ConvertTo-Json -Depth 10|Set-Content release-changelog.json -Encoding UTF8
-          }catch{}
-          git config user.name 'Horizonte AFK Release CI'
-          git config user.email 'actions@users.noreply.github.com'
-          git add latest.json release-candidate.json SHA256SUMS.txt RELEASE_NOTES.md release-changelog.json
-          git commit -m 'release: v1.6.58-beta.1 desktop menu retirement'
-          git push
+          $utf8NoBom=New-Object System.Text.UTF8Encoding($false)
+          $latest=Get-Content latest.json -Raw -Encoding UTF8|ConvertFrom-Json
+          $candidate=Get-Content release-candidate.json -Raw -Encoding UTF8|ConvertFrom-Json
+          [IO.File]::WriteAllText((Join-Path $PWD 'latest.json'),(($latest|ConvertTo-Json -Depth 8)+[Environment]::NewLine),$utf8NoBom)
+          [IO.File]::WriteAllText((Join-Path $PWD 'release-candidate.json'),(($candidate|ConvertTo-Json -Depth 8)+[Environment]::NewLine),$utf8NoBom)
+          if([IO.File]::ReadAllBytes('latest.json')[0]-eq0xEF){throw 'latest.json ainda possui BOM'}
+          git diff --exit-code -- latest.json release-candidate.json
