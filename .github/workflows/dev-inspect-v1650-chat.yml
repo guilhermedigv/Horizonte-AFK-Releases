@@ -1,0 +1,40 @@
+name: Dev inspect v1.6.50 chat routing
+on:
+  push:
+    branches: [dev/accounts-chat-fix-v1.6.50]
+    paths:
+      - '.github/workflows/dev-inspect-v1650-chat.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: windows-latest
+    steps:
+      - name: Download current v1.6.49
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.49-beta.1/Horizonte_AFK.exe' -OutFile Horizonte_AFK.exe
+          $h=(Get-FileHash Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '81440e11db4b655bcb41ab40f1ff800dc44fee6170666bf400c3bb18a62aa21c'){throw "Unexpected base hash $h"}
+      - name: Extract routing functions
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          b=Path('Horizonte_AFK.exe').read_bytes()
+          start=b.find(b'# Horizonte AFK Launcher')
+          src=b[start:start+500000].decode('utf-8','replace')
+          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
+          names=[m.group(1) for m in funcs]
+          print('FUNCTIONS_CONTAINING_CONNECTION_CHAT_PAGE')
+          for n in names:
+              if any(k in n.lower() for k in ('connection','chat','accountpage','hzpage')):
+                  print(n)
+          wanted={'Open-HZUcpConnection','Show-HZConnectionCenter','Show-HZConnectionWindow','Update-HZConnectionWindow','Select-HZAccountPage','New-HZAccountPage','Save-HZAccountPages','Show-HZAccountsCenter'}
+          for i,m in enumerate(funcs):
+              n=m.group(1)
+              if n not in wanted: continue
+              end=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              print(f'===== {n} BEGIN =====')
+              print(src[m.start():end])
+              print(f'===== {n} END =====')
