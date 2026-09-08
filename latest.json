@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.53-beta.1",
-  "published_at": "2026-09-08T01:53:13Z",
+  "version": "1.6.54-beta.1",
+  "published_at": "2026-09-08T02:03:41Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe",
-  "sha256": "91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.54-beta.1/Horizonte_AFK.exe",
+  "sha256": "aa6a526b0a9873160f1af9ff282ac0a9d1940caa692a2c1f280f6c3e6d6bae91",
   "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "Corrige a reanexação de contas já conectadas ao CONEXÕES E CHAT, reconciliando o perfil local e forçando atualização da sessão Cloud antes de abrir o chat.",
+  "notes": "Estabiliza a vinculação da sessão 24/7 no CONEXÕES E CHAT para não alternar incorretamente de online para desconectada durante as atualizações da janela.",
   "min_supported_version": "1.2.0"
 }
