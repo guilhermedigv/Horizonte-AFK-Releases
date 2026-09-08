@@ -14,17 +14,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22.x'
+          go-version: '1.22.12'
+          cache: false
       - name: Testar código
         shell: powershell
         working-directory: web-redirector
-        run: go test ./...
+        run: go test -buildvcs=false ./...
       - name: Compilar redirector leve
         shell: powershell
         working-directory: web-redirector
         run: |
           New-Item -ItemType Directory -Force candidate|Out-Null
-          go build -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
+          go build -buildvcs=false -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
       - name: Validar executável
         shell: powershell
         run: |
@@ -41,6 +42,6 @@ jobs:
           if(-not $raw.Contains('hzrp.discloud.app/panel')){throw 'URL do painel não encontrada no executável'}
       - uses: actions/upload-artifact@v4
         with:
-          name: Horizonte-AFK-v1.6.57-beta.1-web-redirector
+          name: Horizonte-AFK-v1.6.57-beta.1-web-redirector-reproducible
           path: web-redirector/candidate/Horizonte_AFK.exe
           if-no-files-found: error
