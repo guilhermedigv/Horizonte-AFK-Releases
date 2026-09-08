@@ -25,16 +25,12 @@ jobs:
           start=b.find(b'# Horizonte AFK Launcher')
           src=b[start:start+500000].decode('utf-8','replace')
           funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
-          names=[m.group(1) for m in funcs]
-          print('FUNCTIONS_CONTAINING_CONNECTION_CHAT_PAGE')
-          for n in names:
-              if any(k in n.lower() for k in ('connection','chat','accountpage','hzpage')):
-                  print(n)
-          wanted={'Open-HZUcpConnection','Show-HZConnectionCenter','Show-HZConnectionWindow','Update-HZConnectionWindow','Select-HZAccountPage','New-HZAccountPage','Save-HZAccountPages','Show-HZAccountsCenter'}
+          wanted={'Open-HZUcpConnection','Show-HZConnectionCenter','Refresh-HZConnectionWindow','Select-HZAccountPage','New-HZAccountPage','Save-HZAccountPages','Show-HZAccountsCenter','Initialize-HZAccountPages'}
           for i,m in enumerate(funcs):
               n=m.group(1)
               if n not in wanted: continue
               end=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              chunk=src[m.start():end]
               print(f'===== {n} BEGIN =====')
-              print(src[m.start():end])
+              print(chunk.encode('ascii','backslashreplace').decode('ascii'))
               print(f'===== {n} END =====')
