@@ -1,14 +1,14 @@
 ﻿{
     "product":  "Horizonte AFK",
     "channel":  "beta",
-    "version":  "1.6.56-beta.1",
-    "published_at":  "2026-09-08T18:25:39Z",
+    "version":  "1.6.57-beta.1",
+    "published_at":  "2026-09-08T20:21:08Z",
     "available":  true,
     "mandatory":  false,
-    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.56-beta.1/Horizonte_AFK.exe",
-    "sha256":  "a62da3c84cf4531ff8547a720571dd81a603bccc559b1cd1fa4f84ac7cdcd82d",
-    "size_bytes":  5908992,
+    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.57-beta.1/Horizonte_AFK.exe",
+    "sha256":  "db12f47692c9f47fbec79a2bb8ef1dc7dbfd2b68bcde6bd53217d5b724fc11ec",
+    "size_bytes":  1484288,
     "encoding":  "none",
-    "notes":  "Corrige dialogs simultÃ¢neos de mÃºltiplas contas: cada dialog agora Ã© vinculado Ã  sessÃ£o/conta dona, respostas sÃ£o roteadas para o session_id correto e reconexÃµes usam geraÃ§Ã£o Ãºnica de dialog. Requer Cloud 0.5.15.",
+    "notes":  "O EXE agora Ã© um redirecionador leve para o painel web da Discloud. Contas, dialogs, chat e AFK ficam na Cloud; contas normais sÃ£o isoladas e admins veem todas as sessÃµes. Requer Cloud 0.6.2.",
     "min_supported_version":  "1.2.0"
 }

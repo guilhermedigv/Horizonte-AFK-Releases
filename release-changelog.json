@@ -3,6 +3,18 @@
     "channel":  "beta",
     "versions":  [
                      {
+                         "version":  "1.6.57-beta.1",
+                         "date":  "2026-09-08",
+                         "changes":  [
+                                         "EXE reduzido a um redirecionador leve para o painel web da Discloud.",
+                                         "NÃºcleo AFK deixa de rodar localmente e permanece na Cloud.",
+                                         "Cloud 0.6.2 adiciona contas Admin e Normal.",
+                                         "Contas normais enxergam somente as prÃ³prias sessÃµes.",
+                                         "Administradores enxergam todas as sessÃµes e podem gerenciar usuÃ¡rios.",
+                                         "SouNiko Ã© promovido automaticamente para administrador."
+                                     ]
+                     },
+                     {
                          "version":  "1.6.56-beta.1",
                          "date":  "2026-09-08",
                          "changes":  [

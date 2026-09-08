@@ -1,1 +1,1 @@
-a62da3c84cf4531ff8547a720571dd81a603bccc559b1cd1fa4f84ac7cdcd82d  Horizonte_AFK.exe
+db12f47692c9f47fbec79a2bb8ef1dc7dbfd2b68bcde6bd53217d5b724fc11ec  Horizonte_AFK.exe
