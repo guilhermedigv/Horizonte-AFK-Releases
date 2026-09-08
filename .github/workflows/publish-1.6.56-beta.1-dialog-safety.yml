@@ -49,8 +49,12 @@ jobs:
           - Reconexões recebem uma geração de processo, evitando que um novo dialog Seq=1 seja confundido com um dialog antigo.
           - Preserva as correções de reconexão, nick reservado e sessão única da Cloud 0.5.15.
           '@ | Set-Content RELEASE_NOTES_1.6.56.md -Encoding UTF8
+          $oldPreference=$ErrorActionPreference
+          $ErrorActionPreference='SilentlyContinue'
           gh release view $tag *> $null
-          if($LASTEXITCODE-eq0){
+          $exists=($LASTEXITCODE-eq0)
+          $ErrorActionPreference=$oldPreference
+          if($exists){
             gh release upload $tag $exe --clobber
             gh release edit $tag --title 'Horizonte AFK v1.6.56-beta.1' --notes-file RELEASE_NOTES_1.6.56.md --prerelease --latest=false
           }else{
