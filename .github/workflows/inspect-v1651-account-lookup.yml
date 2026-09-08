@@ -22,10 +22,9 @@ jobs:
           import re
           b=Path('Horizonte_AFK.exe').read_bytes()
           start=b.find(b'# Horizonte AFK Launcher')
-          src=b[start:start+600000].decode('utf-8','replace')
+          src=b[start:start+650000].decode('utf-8','replace')
           funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
-          keys=('Account','Cloud','Page')
-          exact={'Get-HZAccountById','Load-HZAccounts','Sync-HZAccountsFromCloud','New-HZAccountPage','Select-HZAccountPage','Save-HZAccountPages','Open-HZUcpConnection','Refresh-HZAccountsCenter','Get-HZAccountCloudSessionId','Ensure-HZAccountCurrent'}
+          exact={'Normalize-HZAccounts','Ensure-HZAccountForValues','Get-HZAccountById','Load-HZAccounts','Save-HZAccounts','Sync-HZAccountsFromCloud','New-HZAccountPage','Select-HZAccountPage','Save-HZAccountPages','Open-HZUcpConnection','Refresh-HZAccountsCenter','Get-HZAccountCloudSessionId','Ensure-HZAccountCurrent','Sync-HZActivePageCloudAttachment'}
           for i,m in enumerate(funcs):
               n=m.group(1)
               if n not in exact: continue
