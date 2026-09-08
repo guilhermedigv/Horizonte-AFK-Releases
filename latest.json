@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.51-beta.1",
-  "published_at": "2026-09-08T01:29:54Z",
+  "version": "1.6.52-beta.1",
+  "published_at": "2026-09-08T01:42:21Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.51-beta.1/Horizonte_AFK.exe",
-  "sha256": "4d8084036d42b801a7501d44fdf0c10a1156dc07c56ca1430ee5ee015694bb91",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.52-beta.1/Horizonte_AFK.exe",
+  "sha256": "ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f",
   "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "Corrige a abertura de CONEXÕES E CHAT e remove o limite local remanescente de 5 contas/páginas.",
+  "notes": "Corrige o handoff da conta e a seleção/criação de página ao abrir CONEXÕES E CHAT pelo Centro de Contas.",
   "min_supported_version": "1.2.0"
 }
