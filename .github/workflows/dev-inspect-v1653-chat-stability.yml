@@ -1,0 +1,38 @@
+name: Dev inspect v1.6.53 chat stability helpers
+on:
+  push:
+    branches: [dev/connection-chat-online-fix-v1.6.53]
+    paths:
+      - '.github/workflows/dev-inspect-v1653-chat-stability.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download exact v1.6.53
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
+          echo '91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03  Horizonte_AFK.exe' | sha256sum -c -
+      - name: Print chat/session persistence helpers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          b=Path('Horizonte_AFK.exe').read_bytes(); start=b.find(b'# Horizonte AFK Launcher'); src=b[start:start+800000].decode('utf-8','replace')
+          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
+          wanted={
+            'Ensure-HZAccountCurrent','Get-HZAccountById','Load-HZAccounts','Save-HZAccounts','Get-HZCloudSessionById',
+            'Register-HZDeviceCloudSession','Set-HZAccountCloudProperty','Get-HZPageCloudSession','Sync-HZActivePageCloudAttachment',
+            'Get-HZActivePageCloudSession','Get-HZActivePageCloudSessionId','Start-HZCloudTimer','Stop-HZCloudTimer','Update-HZCloudSession',
+            'Refresh-HZConnectionWindow','Get-HZConnectionStatusLabel','Get-HZConnectionChatText','Get-HZCloudRawConsole','Open-HZUcpConnection'
+          }
+          for i,m in enumerate(funcs):
+              n=m.group(1)
+              if n not in wanted: continue
+              e=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              print(f'===== {n} BEGIN =====')
+              print(src[m.start():e].rstrip())
+              print(f'===== {n} END =====')
+          PY
