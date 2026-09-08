@@ -43,7 +43,8 @@ jobs:
           if old_tail not in region:raise SystemExit('Old post-dialog handoff marker missing')
           region=region.replace(old_tail,new_tail,1)
           old_len=e-s
-          for token in [' BorderBrush="#18A9FF"',' BorderBrush="#285A76"',' BorderBrush="#31506D"',' BorderBrush="#23895D"',' BorderBrush="#71313C"',' FontWeight="SemiBold"']:
+          compact=[' FontWeight="Bold"']*8+[' FontWeight="SemiBold"',' FontFamily="Segoe UI"',' FontSize="13"',' FontSize="24"',' BorderBrush="#18A9FF"',' BorderBrush="#285A76"',' BorderBrush="#31506D"',' BorderBrush="#23895D"',' BorderBrush="#71313C"']
+          for token in compact:
               if len(region.encode('utf-8'))<=old_len:break
               region=region.replace(token,'',1)
           raw=region.encode('utf-8')
