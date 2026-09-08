@@ -1,0 +1,104 @@
+name: Dev build v1.6.51 account chat runtime fix
+on:
+  push:
+    branches: [dev/accounts-chat-runtime-fix-v1.6.51]
+    paths:
+      - '.github/workflows/dev-build-v1651-chat-runtime-fix.yml'
+permissions:
+  contents: read
+jobs:
+  patch:
+    runs-on: windows-latest
+    steps:
+      - name: Download exact v1.6.50 base
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.50-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '00b1f6c9fc34566ec4406c413a75acd4631d136d3d57686f5923db4d892edae6'){throw "Unexpected base hash $h"}
+      - name: Patch throw tokenization and remove local five-page cap
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, hashlib
+          a=Path('base.exe').read_bytes(); b=bytearray(a)
+          # Fix the exact runtime failure shown by PowerShell: minified `throw'...'`
+          # is parsed as a command name. The Account Center has reserved padding, so
+          # expand every throw token there and consume only that padding.
+          sm=b'function Refresh-HZAccountsCenter'
+          em=b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.'
+          s=a.find(sm); e=a.find(em,s)
+          if s<0 or e<0: raise SystemExit('Account Center region not found')
+          region=bytes(b[s:e])
+          n=region.count(b"throw'")
+          if n<1: raise SystemExit('Expected minified throw token not found')
+          region=region.replace(b"throw'",b"throw '")
+          extra=len(region)-(e-s)
+          # v1.6.50 contains a trailing padding comment in this fixed-size region.
+          m=re.search(rb'#[ ]*\r?\n$',region)
+          if not m or (m.end()-m.start()) <= extra+2:
+              raise SystemExit(f'Insufficient Account Center padding for {extra} byte expansion')
+          tail=region[m.start():]
+          newline=b'\r\n' if tail.endswith(b'\r\n') else b'\n'
+          spaces=len(tail)-1-len(newline)-extra
+          region=region[:m.start()]+b'#'+b' '*spaces+newline
+          if len(region)!=(e-s): raise SystemExit('Account Center fixed-size patch failed')
+          b[s:e]=region
+          # The Cloud-side 5-session limit was already removed, but v1.6.50 still
+          # had a local UI page cap of five. Remove only that guard, preserving bytes.
+          src=bytes(b)
+          fs=src.find(b'function New-HZAccountPage')
+          fe=src.find(b'function ',fs+20)
+          if fs<0 or fe<0: raise SystemExit('New-HZAccountPage function not found')
+          chunk=src[fs:fe]
+          pat=re.compile(rb'\s*if \(@\(\$script:hzAccountPages\)\.Count -ge 5\) \{.*?return \$null.*?\}\s*',re.S)
+          mm=pat.search(chunk)
+          if not mm or b'Limite de p' not in mm.group(0): raise SystemExit('Five-page guard not found')
+          abs_s=fs+mm.start(); abs_e=fs+mm.end()
+          old=bytes(b[abs_s:abs_e])
+          blank=bytes((c if c in (10,13) else 32) for c in old)
+          b[abs_s:abs_e]=blank
+          # Version bump, same byte length.
+          oldv=b'1.6.50-beta.1'; newv=b'1.6.51-beta.1'; p=0; vc=0
+          while True:
+              i=b.find(oldv,p)
+              if i<0: break
+              b[i:i+len(oldv)]=newv; p=i+len(newv); vc+=1
+          if vc<1: raise SystemExit('Version marker not found')
+          Path('Horizonte_AFK.exe').write_bytes(b)
+          print('throw_fixes',n,'page_guard_bytes',abs_e-abs_s,'version_replacements',vc)
+          print('candidate_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - name: Validate PowerShell runtime-critical functions
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
+          $text=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('1.6.51-beta.1','CONEXÕES E CHAT','$e.OriginalSource','DataContext.Id','Show-HZConnectionCenter')){if(-not $text.Contains($m)){throw "Missing marker: $m"}}
+          if($text.Contains("throw'Conta indisponível.'")){throw 'Old broken throw token still present'}
+          if($text.Contains('Você pode manter até 5 contas 24/7 no mesmo launcher.')){throw 'Local five-page cap still present'}
+          foreach($name in @('Open-HZUcpConnection','Show-HZAccountsCenter','New-HZAccountPage','Show-HZConnectionCenter')){
+            $s=$text.IndexOf('function '+$name);if($s-lt0){throw "Function missing: $name"}
+            $e=$text.IndexOf("`nfunction ",$s+10);if($e-lt0){$e=[Math]::Min($text.Length,$s+40000)}
+            [void][scriptblock]::Create($text.Substring($s,$e-$s))
+            Write-Host "Parse OK: $name"
+          }
+      - name: Validate PE shape and narrow byte changes
+        shell: python
+        run: |
+          from pathlib import Path
+          import struct, hashlib
+          a=Path('base.exe').read_bytes(); b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b): raise SystemExit('PE size changed')
+          def pe(x):
+              o=struct.unpack_from('<I',x,0x3c)[0];n=struct.unpack_from('<H',x,o+6)[0];z=struct.unpack_from('<H',x,o+20)[0];q=o+24+z
+              return [(x[q+i*40:q+i*40+8],struct.unpack_from('<II',x,q+i*40+16)) for i in range(n)]
+          if pe(a)!=pe(b): raise SystemExit('PE section map changed')
+          # Safety markers from previous validated releases must remain.
+          for m in (b'ServerClosed',b'learned',b'Get-HZActivePageCloudSessionId',b'reconciliation-only migration'):
+              if m not in b: raise SystemExit('Missing preserved safety marker '+repr(m))
+          print('final_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.51-chat-runtime-fix-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
