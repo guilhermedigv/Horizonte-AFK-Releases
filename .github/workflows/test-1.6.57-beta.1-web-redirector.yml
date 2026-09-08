@@ -1,0 +1,46 @@
+name: Testar Horizonte AFK 1.6.57 beta1 web redirector
+on:
+  push:
+    branches: [feature/web-redirector-v1657]
+    paths:
+      - 'web-redirector/**'
+      - '.github/workflows/test-1.6.57-beta.1-web-redirector.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Testar código
+        shell: powershell
+        working-directory: web-redirector
+        run: go test ./...
+      - name: Compilar redirector leve
+        shell: powershell
+        working-directory: web-redirector
+        run: |
+          New-Item -ItemType Directory -Force candidate|Out-Null
+          go build -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
+      - name: Validar executável
+        shell: powershell
+        run: |
+          $exe='web-redirector/candidate/Horizonte_AFK.exe'
+          $bytes=[IO.File]::ReadAllBytes($exe)
+          if($bytes.Length-lt100000){throw "EXE pequeno demais: $($bytes.Length)"}
+          if($bytes.Length-gt4000000){throw "Redirector pesado demais: $($bytes.Length)"}
+          if($bytes[0]-ne0x4D-or$bytes[1]-ne0x5A){throw 'Cabeçalho PE inválido'}
+          $sha=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size=(Get-Item $exe).Length
+          "sha256=$sha"
+          "size=$size"
+          $raw=[Text.Encoding]::ASCII.GetString($bytes)
+          if(-not $raw.Contains('hzrp.discloud.app/panel')){throw 'URL do painel não encontrada no executável'}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.57-beta.1-web-redirector
+          path: web-redirector/candidate/Horizonte_AFK.exe
+          if-no-files-found: error
