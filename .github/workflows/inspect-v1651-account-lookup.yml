@@ -1,0 +1,36 @@
+name: Inspect v1.6.51 account lookup runtime
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-v1651-account-lookup.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current release
+        run: |
+          set -euo pipefail
+          curl -fL 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.51-beta.1/Horizonte_AFK.exe' -o Horizonte_AFK.exe
+          echo '4d8084036d42b801a7501d44fdf0c10a1156dc07c56ca1430ee5ee015694bb91  Horizonte_AFK.exe' | sha256sum -c -
+      - name: Print account lookup functions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          b=Path('Horizonte_AFK.exe').read_bytes()
+          start=b.find(b'# Horizonte AFK Launcher')
+          src=b[start:start+600000].decode('utf-8','replace')
+          funcs=list(re.finditer(r'(?m)^function\s+([A-Za-z0-9_-]+)\s*',src))
+          keys=('Account','Cloud','Page')
+          exact={'Get-HZAccountById','Load-HZAccounts','Sync-HZAccountsFromCloud','New-HZAccountPage','Select-HZAccountPage','Save-HZAccountPages','Open-HZUcpConnection','Refresh-HZAccountsCenter','Get-HZAccountCloudSessionId','Ensure-HZAccountCurrent'}
+          for i,m in enumerate(funcs):
+              n=m.group(1)
+              if n not in exact: continue
+              e=funcs[i+1].start() if i+1<len(funcs) else len(src)
+              print(f'===== {n} BEGIN =====')
+              print(src[m.start():e].rstrip())
+              print(f'===== {n} END =====')
+          PY
