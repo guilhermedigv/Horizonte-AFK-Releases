@@ -1,0 +1,112 @@
+name: Publicar Horizonte AFK 1.6.57 beta1 web redirector
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web-redirector/**'
+      - '.github/workflows/publish-1.6.57-beta.1-web-redirector.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.12'
+          cache: false
+      - name: Confirmar versão pública de origem
+        shell: powershell
+        run: |
+          $m=Get-Content latest.json -Raw -Encoding UTF8|ConvertFrom-Json
+          if([string]$m.version-ne'1.6.56-beta.1'){throw "Origem pública inesperada: $($m.version)"}
+          if([string]$m.sha256-ne'a62da3c84cf4531ff8547a720571dd81a603bccc559b1cd1fa4f84ac7cdcd82d'){throw 'Hash da origem pública inesperado'}
+      - name: Testar redirector
+        shell: powershell
+        working-directory: web-redirector
+        run: go test ./...
+      - name: Reproduzir candidato validado
+        shell: powershell
+        working-directory: web-redirector
+        run: |
+          New-Item -ItemType Directory -Force candidate|Out-Null
+          go build -trimpath -ldflags='-s -w -H windowsgui' -o candidate/Horizonte_AFK.exe .
+      - name: Validar artefato exato
+        shell: powershell
+        run: |
+          $exe='web-redirector/candidate/Horizonte_AFK.exe'
+          $size=(Get-Item $exe).Length
+          $sha=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($size-ne1484800){throw "Tamanho diferente do candidato validado: $size"}
+          if($sha-ne'0bc892d034378a88f540a1aa4595b24ce4863ab4f6003836186eb03e08c79a62'){throw "Hash diferente do candidato validado: $sha"}
+          $bytes=[IO.File]::ReadAllBytes($exe)
+          if($bytes[0]-ne0x4D-or$bytes[1]-ne0x5A){throw 'Executável PE inválido'}
+          $raw=[Text.Encoding]::ASCII.GetString($bytes)
+          if(-not $raw.Contains('hzrp.discloud.app/panel')){throw 'URL do painel não encontrada no executável'}
+          "HZ_SHA=$sha"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+          "HZ_SIZE=$size"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+      - name: Publicar release e conferir download
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $tag='v1.6.57-beta.1'
+          $exe='web-redirector/candidate/Horizonte_AFK.exe'
+          @'
+          O Horizonte AFK agora usa o painel web da Discloud como interface principal.
+
+          - O EXE virou um redirecionador leve para https://hzrp.discloud.app/panel.
+          - Todo o núcleo AFK, contas, dialogs, login/spawn, chat e reconexão continuam na Cloud mesmo com o PC desligado.
+          - Remove do PC o peso do painel PowerShell/WPF e do núcleo RakSAMP local.
+          - O painel web agora possui contas de administrador e contas normais isoladas.
+          - Usuário normal vê e controla somente as sessões vinculadas ao próprio usuário.
+          - Administrador vê todas as sessões, inclusive sessões legadas/gerais.
+          - A conta SouNiko existente é promovida automaticamente para administrador pela Cloud 0.6.2.
+          '@ | Set-Content RELEASE_NOTES_1.6.57.md -Encoding UTF8
+          $oldPreference=$ErrorActionPreference
+          $ErrorActionPreference='SilentlyContinue'
+          gh release view $tag *> $null
+          $exists=($LASTEXITCODE-eq0)
+          $ErrorActionPreference=$oldPreference
+          if($exists){
+            gh release upload $tag $exe --clobber
+            gh release edit $tag --title 'Horizonte AFK v1.6.57-beta.1' --notes-file RELEASE_NOTES_1.6.57.md --prerelease --latest=false
+          }else{
+            gh release create $tag $exe --target main --title 'Horizonte AFK v1.6.57-beta.1' --notes-file RELEASE_NOTES_1.6.57.md --prerelease --latest=false
+          }
+          New-Item -ItemType Directory -Force verify|Out-Null
+          gh release download $tag --pattern Horizonte_AFK.exe --dir verify
+          $got=(Get-FileHash verify/Horizonte_AFK.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $gotSize=(Get-Item verify/Horizonte_AFK.exe).Length
+          if($got-ne$env:HZ_SHA){throw "Asset publicado difere do validado: $got"}
+          if($gotSize-ne[int64]$env:HZ_SIZE){throw "Tamanho publicado difere do validado: $gotSize"}
+      - name: Atualizar manifestos públicos somente após verificação
+        shell: powershell
+        run: |
+          $now=[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+          $url='https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.57-beta.1/Horizonte_AFK.exe'
+          $notes='O EXE agora é um redirecionador leve para o painel web da Discloud. Contas, dialogs, chat e AFK ficam na Cloud; contas normais são isoladas e admins veem todas as sessões. Requer Cloud 0.6.2.'
+          $latest=[ordered]@{product='Horizonte AFK';channel='beta';version='1.6.57-beta.1';published_at=$now;available=$true;mandatory=$false;download_url=$url;sha256=$env:HZ_SHA;size_bytes=[int64]$env:HZ_SIZE;encoding='none';notes=$notes;min_supported_version='1.2.0'}
+          $latest|ConvertTo-Json -Depth 8|Set-Content latest.json -Encoding UTF8
+          $latest|ConvertTo-Json -Depth 8|Set-Content release-candidate.json -Encoding UTF8
+          "$($env:HZ_SHA)  Horizonte_AFK.exe"|Set-Content SHA256SUMS.txt -Encoding ASCII
+          @'
+          # Horizonte AFK v1.6.57-beta.1
+
+          Migração do cliente desktop para o painel web da Discloud.
+
+          O executável local agora é apenas um redirecionador leve para https://hzrp.discloud.app/panel. O processamento AFK permanece integralmente na Cloud. O painel Cloud 0.6.2 adiciona usuários administradores e usuários normais com isolamento de sessões; SouNiko é promovido automaticamente a administrador.
+          '@ | Set-Content RELEASE_NOTES.md -Encoding UTF8
+          try{
+            $c=Get-Content release-changelog.json -Raw -Encoding UTF8|ConvertFrom-Json
+            $entry=[pscustomobject]@{version='1.6.57-beta.1';date='2026-09-08';changes=@('EXE reduzido a um redirecionador leve para o painel web da Discloud.','Núcleo AFK deixa de rodar localmente e permanece na Cloud.','Cloud 0.6.2 adiciona contas Admin e Normal.','Contas normais enxergam somente as próprias sessões.','Administradores enxergam todas as sessões e podem gerenciar usuários.','SouNiko é promovido automaticamente para administrador.')}
+            $versions=@($entry)+@($c.versions|Where-Object{[string]$_.version-ne'1.6.57-beta.1'})
+            [ordered]@{product=[string]$c.product;channel=[string]$c.channel;versions=$versions}|ConvertTo-Json -Depth 10|Set-Content release-changelog.json -Encoding UTF8
+          }catch{}
+          git config user.name 'Horizonte AFK Release CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add latest.json release-candidate.json SHA256SUMS.txt RELEASE_NOTES.md release-changelog.json
+          git commit -m 'release: v1.6.57-beta.1 web redirector'
+          git push
