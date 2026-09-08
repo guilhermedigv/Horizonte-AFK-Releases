@@ -1,346 +1,357 @@
-{
-  "product": "Horizonte AFK",
-  "channel": "beta",
-  "versions": [
-    {
-      "version": "1.6.55-beta.1",
-      "date": "2026-09-08",
-      "changes": [
-        "Corrigida a conversão de contas que apagava a lista local durante refresh e fazia uma sessão Cloud online aparecer desconectada.",
-        "Leituras incompletas ou inválidas preservam as contas em memória.",
-        "Páginas são restauradas individualmente, sem concatenar IDs; vínculos antigos são reconciliados por nick, servidor e porta.",
-        "Validação com WPF e Cloud reais: 193,5 segundos, 1.002 consultas, zero quedas; 22 testes de regressão aprovados."
-      ]
-    },
-    {
-      "version": "1.6.15-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigida a restauração 24/7 que podia anexar a primeira sessão da Discloud mesmo quando ela pertencia a outro nick.",
-        "O launcher agora restaura somente uma sessão cujo nick, servidor e porta correspondam exatamente aos campos atuais.",
-        "Ao conectar na nuvem, o nick digitado é congelado antes da reconciliação de contas e enviado sem ser substituído por perfil antigo.",
-        "Se a Cloud devolver uma sessão existente com outro nick, o launcher cria uma identidade de sessão isolada e tenta novamente, sem assumir a conta errada.",
-        "O status seguro passa a registrar Nick solicitado e Nick enviado para facilitar a conferência sem expor senha ou 2FA.",
-        "Modo local, Centro de Contas, chat, dialogs, multi-servidor e persistência 24/7 foram preservados."
-      ]
-    },
-    {
-      "version": "1.6.14-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigido o fechamento inesperado do EXE ao pressionar ENTER no campo da aba CONEXÃO E CHAT.",
-        "A tecla ENTER agora é interceptada antes da ação padrão da janela e envia pelo mesmo fluxo seguro de chat/comando.",
-        "Removida a dependência do handler de teclado em uma variável local que já não existia quando a tecla era pressionada.",
-        "O botão ENVIAR continua com o mesmo comportamento e as correções de chat/dialog da 1.6.13 foram preservadas."
-      ]
-    },
-    {
-      "version": "1.6.13-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "A aba CONEXÃO agora lê o chat local diretamente da lista nativa do RakSAMP, em vez de depender de um arquivo de log que podia não existir.",
-        "No modo 24/7, o chat reutiliza o mesmo console remoto já usado pelo painel de status, mantendo as mensagens do servidor centralizadas na aba CONEXÃO.",
-        "Mensagens de chat e client messages são exibidas no painel com os códigos de cor do SA-MP removidos.",
-        "A janela CONEXÃO deixou de ser modal; quando um /comando abre um dialog, o chat é ocultado temporariamente e o dialog integrado recebe foco no launcher principal.",
-        "Depois de responder ou fechar o dialog, a janela CONEXÃO volta automaticamente para continuar o chat.",
-        "Mantidos o envio de chat/comandos, bloqueio de comandos internos iniciados por !, 24/7, multi-servidor, Centro de Contas e configurações."
-      ]
-    },
-    {
-      "version": "1.6.12-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigido o Centro de Contas quando dados antigos vinham como System.Object[]: a leitura agora normaliza arrays e valores de servidor/porta antes de exibir os perfis.",
-        "A persistência de contas e regras passa a gravar coleções JSON de forma consistente, inclusive quando existe apenas uma conta.",
-        "A aba CONEXÃO agora abre um painel de chat: texto normal envia chat e /comando envia comando ao servidor pelo mesmo caminho do RakSAMP.",
-        "Por segurança, comandos internos do RakSAMP iniciados por ! são bloqueados, há limite de tamanho e intervalo mínimo entre envios.",
-        "A aba CONFIGURAÇÕES agora permite controlar atualizações automáticas, abertura maximizada e modo privado do painel.",
-        "Dialogs, modo 24/7, multi-servidor, fechamento na bandeja e limpeza dos códigos de cor permanecem preservados.",
-        "Chat no modo 24/7 requer Horizonte AFK Cloud v0.5.3 ou superior; chat local funciona diretamente nesta versão."
-      ]
-    },
-    {
-      "version": "1.6.11-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Removidos dos dialogs os códigos de cor do SA-MP, como {008BFF}, {FFFFFF} e {27AE60}, que estavam aparecendo como texto.",
-        "Título, corpo, opções de lista e botões dos dialogs agora são exibidos limpos, sem marcadores de formatação do servidor.",
-        "As respostas enviadas ao servidor continuam usando os valores originais, evitando quebrar login, spawn e seleções.",
-        "Mantidas as correções do modo 24/7, Centro de Contas e multi-servidor das versões anteriores."
-      ]
-    },
-    {
-      "version": "1.6.10-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigido o erro do PowerShell em que a variável automática Host, que é somente leitura, impedia o modo 24/7 de iniciar.",
-        "Corrigida a gravação de contas no accounts-v1.json; contas usadas ou salvas passam a aparecer novamente no Centro de Contas.",
-        "Centro de Contas volta a reconciliar contas salvas com sessões 24/7 ativas da Discloud.",
-        "Conexão local continua independente: falhas de persistência de conta não interrompem o RakSAMP.",
-        "Mantidas as correções de fila multi-servidor, persistência ao fechar o launcher e Cloud Discloud v0.5.2."
-      ]
-    },
-    {
-      "version": "1.6.9-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigida regressão da 1.6.8-beta.1 que podia impedir até a conexão local antes de iniciar o RakSAMP.",
-        "Falhas ao registrar/sincronizar uma conta no Centro de Contas não interrompem mais o fluxo de conexão local.",
-        "Em caso de nova falha ao conectar, o painel e o log agora mostram a causa real em vez da mensagem genérica.",
-        "Mantidas as correções de persistência 24/7, reconciliação de contas e fila multi-servidor da versão anterior.",
-        "A versão foi elevada para 1.6.9-beta.1 para impedir o updater antigo de interpretar betas do mesmo 1.6.8 como equivalentes e regredir o executável."
-      ]
-    },
-    {
-      "version": "1.6.8-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Centro de Contas volta a listar e reconciliar contas salvas com sessões Cloud ativas.",
-        "Sessões 24/7 continuam na Discloud ao fechar ou sair do launcher; somente DESCONECTAR/ENCERRAR envia stop explícito.",
-        "Multi-servidor agora processa login, 2FA e dialogs em fila, um servidor por vez.",
-        "Ao concluir ou falhar uma sessão da fila, o próximo servidor é iniciado automaticamente.",
-        "State.json antigo de sessão encerrada não bloqueia mais a fila multi-servidor.",
-        "Atualização do Centro de Contas foi limitada para evitar consultas excessivas à Cloud, mantendo o botão Atualizar imediato.",
-        "Compatível com Horizonte AFK Cloud Discloud DIRECT v0.5.2."
-      ]
-    },
-    {
-      "version": "1.6.7-beta.3",
-      "date": "2026-09-06",
-      "changes": [
-        "Fechar o Horizonte AFK ou usar Sair completamente não encerra mais sessões 24/7 na Discloud.",
-        "Atualizações/reinício do launcher apenas desacoplam a interface da sessão Cloud.",
-        "Uma sessão Cloud só é encerrada quando o usuário usa DESCONECTAR/ENCERRAR explicitamente no Centro de Contas.",
-        "O cliente deixou de usar DELETE genérico para parar contas e passa a usar o endpoint explícito /stop.",
-        "Exige Cloud v0.5.1 com explicit_stop_v2 e detach_safe para ativar novas conexões."
-      ]
-    },
-    {
-      "version": "1.6.7-beta.2",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigida a aplicação silenciosa do Centro de Contas que fazia a interface permanecer visualmente na v1.6.6-beta.4.",
-        "A nova aba CONTAS agora é exigida na validação do executável final antes da publicação.",
-        "Adicionado teste do PowerShell final e carregamento real da janela WPF para impedir promoção de builds com falha de runtime.",
-        "Mantidos Centro de Contas, sessões locais/nuvem, login rápido, persistência Cloud e o fail-safe do modo local."
-      ]
-    },
-    {
-      "version": "1.6.7-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Nova aba CONTAS na lateral com um UCP simples de contas e sessões.",
-        "Cada perfil salvo oferece conexão LOCAL ou 24/7 NA NUVEM.",
-        "Suporte a várias contas e visualização de sessões ativas/offline.",
-        "Após o primeiro login manual, respostas de dialogs podem ser lembradas para login rápido.",
-        "Dados de login rápido ficam protegidos pelo Windows; na Cloud ficam dentro do armazenamento criptografado.",
-        "Sessões 24/7 não são encerradas ao fechar completamente o Horizonte AFK; desconexão passa a ser explícita pelo Centro de Contas.",
-        "Mantém manual_spawn, parser de dialogs, modo local e fail-safe das betas anteriores."
-      ]
-    },
-    {
-      "version": "1.6.6-beta.4",
-      "date": "2026-09-06",
-      "changes": [
-        "Modo 24/7 passa a usar o mesmo runmode Still do modo local.",
-        "O EXE só permite conexão Cloud quando o backend confirma manual_spawn_flow=true.",
-        "Login, 2FA e demais dialogs devem ocorrer antes do spawn, como na conexão local.",
-        "Mantidos console/chat puro, diagnóstico de IP e fail-safe do modo local."
-      ]
-    },
-    {
-      "version": "1.6.6-beta.3",
-      "date": "2026-09-06",
-      "changes": [
-        "Modo 24/7 não tenta mais spawnar imediatamente ao conectar.",
-        "O RakSAMP Cloud permanece conectado processando RPCs/scripts para que login, 2FA e outros dialogs apareçam primeiro no EXE.",
-        "Mantém o chat/console puro da nuvem e o diagnóstico de IP da beta anterior.",
-        "Mantém o fail-safe: uma falha na camada Cloud não impede o modo local de abrir."
-      ]
-    },
-    {
-      "version": "1.6.6-beta.2",
-      "date": "2026-09-06",
-      "changes": [
-        "A área de log passa a mostrar a saída real do RakSAMP na Discloud, incluindo mensagens [CMSG] e eventos de conexão.",
-        "Adicionado diagnóstico do IP público estimado da nuvem quando o backend 0.4.1 estiver instalado.",
-        "Corrigida a versão interna do updater para corresponder à versão publicada e evitar atualização repetida.",
-        "A camada de diagnóstico possui fail-safe e não impede o modo local ou a interface de abrirem se algo falhar."
-      ]
-    },
-    {
-      "version": "1.6.6-beta.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Modo 24/7 voltou diretamente dentro do Horizonte AFK, sem abrir painel no navegador.",
-        "Corrigida a falha de sintaxe que podia fazer a beta anterior iniciar sem exibir a interface.",
-        "Adicionado teste que analisa e carrega o painel WPF final antes de permitir a publicação.",
-        "Adicionado fail-safe: se a camada Cloud não puder ser aplicada, o launcher mantém o modo local funcional.",
-        "Login, 2FA e dialogs da sessão Cloud continuam sendo exibidos no próprio EXE."
-      ]
-    },
-    {
-      "version": "1.6.5-hotfix",
-      "date": "2026-09-06",
-      "changes": [
-        "Correção emergencial para o caso em que a v1.6.4-beta.2 podia iniciar sem exibir a interface.",
-        "Base visual e núcleo restaurados para o comportamento comprovadamente estável da v1.6.3.",
-        "Mantidos updater, bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA e dialogs locais.",
-        "Integração Cloud 24/7 removida temporariamente da stable para ser revalidada em beta separada."
-      ]
-    },
-    {
-      "version": "1.6.4-beta.2",
-      "date": "2026-09-06",
-      "changes": [
-        "Modo Cloud 24/7 passa a funcionar diretamente pelo Horizonte AFK, sem abrir navegador.",
-        "Login, 2FA, dialogs, listas e escolha de spawn da sessão remota são exibidos no próprio EXE.",
-        "A sessão roda na Discloud desde o início e continua online quando o computador é desligado.",
-        "Sessões Cloud existentes são recuperadas pelo EXE quando ele for aberto novamente.",
-        "Mantida a conexão local tradicional e os recursos da linha v1.6.3."
-      ]
-    },
-    {
-      "version": "1.6.4-beta",
-      "date": "2026-09-06",
-      "changes": [
-        "Adicionado acesso ao modo Cloud 24/7 pelo painel do Horizonte AFK.",
-        "A integração usa o serviço hzrp.discloud.app já validado na Discloud.",
-        "Base da v1.6.3, bandeja, multi-servidor, conta adicional, login, 2FA, dialogs e updater foram preservados.",
-        "Versão publicada como beta para teste antes de substituir a versão estável."
-      ]
-    },
-    {
-      "version": "1.6.3",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigida a regressão da v1.6.2 que podia fazer o Horizonte_AFK.exe abrir sem exibir nenhuma janela.",
-        "O host próprio agora executa o painel como arquivo .ps1 real e preserva $PSScriptRoot e os caminhos internos do aplicativo.",
-        "Adicionado fallback automático para o Windows PowerShell tradicional caso o host próprio falhe em algum Windows específico.",
-        "O host passa a registrar erro interno para facilitar diagnóstico de incompatibilidades futuras.",
-        "Mantidas as correções de bandeja, identidade Horizonte AFK, multi-servidor, conta adicional, login, 2FA e dialogs.",
-        "Núcleo de conexão, RakSAMP e updater SHA-256 preservados."
-      ]
-    },
-    {
-      "version": "1.6.2",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigido o comportamento ao clicar no × para manter o Horizonte AFK recuperável pela bandeja enquanto as sessões continuam ativas.",
-        "Removido o ciclo frequente de remoção e recriação do ícone da bandeja, que podia fazer o ícone desaparecer.",
-        "A integração agora observa TaskbarCreated e só refaz o registro do ícone quando o Windows Explorer realmente reconstrói a área de notificação.",
-        "Painel principal e sessões multi-servidor passam a usar um host próprio identificado pelo Windows como Horizonte AFK.",
-        "Processos AFK persistentes deixam de usar powershell.exe como processo visível no Gerenciador de Tarefas.",
-        "Mantida a conexão de uma conta adicional com nick diferente enquanto o modo multi-servidor permanece ativo.",
-        "Núcleo de conexão, login, 2FA, dialogs, tela cheia e updater SHA-256 preservados."
-      ]
-    },
-    {
-      "version": "1.6.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Corrigida a persistência do ícone do Horizonte AFK na bandeja do Windows enquanto o aplicativo continua em execução.",
-        "A bandeja mantém uma cópia própria do ícone e refaz o registro com o Explorer quando necessário.",
-        "Falhas secundárias no menu da bandeja não removem mais o acesso ao aplicativo em execução.",
-        "No modo multi-servidor, servidor, nick e o botão de conectar permanecem disponíveis para uma conta adicional.",
-        "É possível conectar outra conta com nick diferente sem encerrar as sessões multi-servidor existentes.",
-        "Dialogs da conta adicional têm prioridade para evitar sobreposição com login e 2FA das sessões múltiplas.",
-        "Núcleo de conexão, dialogs, tela cheia e updater SHA-256 preservados."
-      ]
-    },
-    {
-      "version": "1.6.0",
-      "date": "2026-09-06",
-      "changes": [
-        "Clicar no × agora esconde o Horizonte AFK na bandeja do sistema e mantém as sessões AFK ativas.",
-        "Adicionado ícone oficial do Horizonte AFK à integração da janela e bandeja com o Windows.",
-        "Multi-servidor redesenhado para manter apenas um Horizonte AFK visível ao usuário.",
-        "Sessões extras continuam isoladas internamente, mas ficam ocultas da barra de tarefas e do Alt+Tab.",
-        "Status, tempo, login, 2FA, listas e dialogs das sessões múltiplas são centralizados no painel principal.",
-        "Adicionados controles para desconectar servidores individualmente ou encerrar todas as sessões múltiplas.",
-        "Tela cheia/F11, updater SHA-256 e núcleo de conexão/dialogs preservados."
-      ]
-    },
-    {
-      "version": "1.5.0",
-      "date": "2026-09-06",
-      "changes": [
-        "Fechar o painel agora minimiza a janela e mantém a sessão AFK ativa.",
-        "Adicionado botão de saída completa separado para encerrar a sessão e o launcher quando desejado.",
-        "Adicionado modo tela cheia/maximizado pelo botão, duplo clique na barra superior e tecla F11.",
-        "Adicionado modo multi-servidor para selecionar e conectar em vários Horizonte RP ao mesmo tempo.",
-        "Sessões multi-servidor ficam isoladas por processo/runtime, preservando login, 2FA e dialogs de cada servidor.",
-        "Mantidos o updater com SHA-256 e o núcleo de conexão/dialogs validado da linha 1.4.x."
-      ]
-    },
-    {
-      "version": "1.4.1",
-      "date": "2026-09-06",
-      "changes": [
-        "Build de teste para validar atualização automática da 1.4.0.",
-        "Somente o número da versão foi alterado; painel, conexão e dialogs preservados."
-      ]
-    },
-    {
-      "version": "1.4.0",
-      "date": "2026-09-06",
-      "changes": [
-        "Novo visual e ícone integrados ao painel.",
-        "Preservados o núcleo de conexão e todos os dialogs da 1.3.0 validada.",
-        "Corrigida a tela do updater que falhava antes do download.",
-        "Atualização por versão/hash com SHA-256, substituição do mesmo EXE e restauração se o reinício falhar.",
-        "Pacote completo para instalação nova e atualização de instalações existentes.",
-        "Manifesto público compatível; disponibilizada reparação única para builds antigas com updater defeituoso."
-      ]
-    },
-    {
-      "version": "1.3.1",
-      "date": "2026-09-05",
-      "changes": [
-        "Atualização de teste criada somente para validar o sistema automático.",
-        "Nenhuma alteração no núcleo de conexão, dialogs ou design da v1.3.0.",
-        "Ao ser publicada, a v1.3.0 deve exibir o aviso de nova atualização enquanto estiver aberta.",
-        "Ao clicar em Atualizar agora, o launcher deve baixar, validar, substituir o mesmo EXE e reiniciar mostrando v1.3.1.",
-        "Ao abrir a v1.3.0 depois da publicação, a atualização também deve ser aplicada antes do painel principal."
-      ]
-    },
-    {
-      "version": "1.3.0",
-      "date": "2026-09-05",
-      "changes": [
-        "Reaplicado o redesign público sem alterar o XML de conexão nem a rotina de dialogs da build validada.",
-        "Ao abrir um EXE desatualizado, o updater roda antes do painel e mostra uma tela própria com progresso.",
-        "Enquanto o launcher está aberto, ele verifica novas versões e mostra uma notificação discreta com Atualizar agora e Depois.",
-        "Atualizar agora encerra a sessão, baixa a build, valida SHA-256, substitui o mesmo Horizonte_AFK.exe e reinicia.",
-        "Atualizações da mesma versão também podem ser detectadas por mudança de hash do executável.",
-        "Mantidos todos os dialogs SA-MP integrados, incluindo login, senha, 2FA, listas, confirmações e spawn.",
-        "IPs, caminhos internos e chat bruto continuam ocultos na interface pública."
-      ]
-    },
-    {
-      "version": "1.2.3",
-      "date": "2026-09-05",
-      "changes": [
-        "Restaurado o modo de conexão da build validada no Horizonte.",
-        "Mantido o formato de um único Horizonte_AFK.exe."
-      ]
-    },
-    {
-      "version": "1.2.2",
-      "date": "2026-09-05",
-      "changes": [
-        "O programa passou a usar um único arquivo fixo chamado Horizonte_AFK.exe."
-      ]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-09-05",
-      "changes": [
-        "Interface pública simplificada.",
-        "Suporte aos servidores Horizonte RP #1 até #5.",
-        "Dialogs do SA-MP integrados ao painel.",
-        "Modo AFK headless sem abrir o GTA."
-      ]
-    }
-  ]
+﻿{
+    "product":  "Horizonte AFK",
+    "channel":  "beta",
+    "versions":  [
+                     {
+                         "version":  "1.6.56-beta.1",
+                         "date":  "2026-09-08",
+                         "changes":  [
+                                         "Dialogs Cloud passam a ser vinculados Ã  sessÃ£o e conta que os originaram.",
+                                         "Respostas de login/spawn usam o session_id dono do dialog, mesmo se outra conta for selecionada depois.",
+                                         "O aprendizado automÃ¡tico grava apenas no perfil correto.",
+                                         "SessÃµes simultÃ¢neas com dialog pendente sÃ£o coordenadas uma por vez.",
+                                         "A Cloud 0.5.15 adiciona geraÃ§Ã£o do processo para impedir colisÃµes do Seq apÃ³s reconexÃ£o."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.55-beta.1",
+                         "date":  "2026-09-08",
+                         "changes":  [
+                                         "Corrigida a conversão de contas que apagava a lista local durante refresh e fazia uma sessão Cloud online aparecer desconectada.",
+                                         "Leituras incompletas ou inválidas preservam as contas em memória.",
+                                         "Páginas são restauradas individualmente, sem concatenar IDs; vínculos antigos são reconciliados por nick, servidor e porta.",
+                                         "Validação com WPF e Cloud reais: 193,5 segundos, 1.002 consultas, zero quedas; 22 testes de regressão aprovados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.15-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigida a restauração 24/7 que podia anexar a primeira sessão da Discloud mesmo quando ela pertencia a outro nick.",
+                                         "O launcher agora restaura somente uma sessão cujo nick, servidor e porta correspondam exatamente aos campos atuais.",
+                                         "Ao conectar na nuvem, o nick digitado é congelado antes da reconciliação de contas e enviado sem ser substituído por perfil antigo.",
+                                         "Se a Cloud devolver uma sessão existente com outro nick, o launcher cria uma identidade de sessão isolada e tenta novamente, sem assumir a conta errada.",
+                                         "O status seguro passa a registrar Nick solicitado e Nick enviado para facilitar a conferência sem expor senha ou 2FA.",
+                                         "Modo local, Centro de Contas, chat, dialogs, multi-servidor e persistência 24/7 foram preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.14-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigido o fechamento inesperado do EXE ao pressionar ENTER no campo da aba CONEXÃO E CHAT.",
+                                         "A tecla ENTER agora é interceptada antes da ação padrão da janela e envia pelo mesmo fluxo seguro de chat/comando.",
+                                         "Removida a dependência do handler de teclado em uma variável local que já não existia quando a tecla era pressionada.",
+                                         "O botão ENVIAR continua com o mesmo comportamento e as correções de chat/dialog da 1.6.13 foram preservadas."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.13-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "A aba CONEXÃO agora lê o chat local diretamente da lista nativa do RakSAMP, em vez de depender de um arquivo de log que podia não existir.",
+                                         "No modo 24/7, o chat reutiliza o mesmo console remoto já usado pelo painel de status, mantendo as mensagens do servidor centralizadas na aba CONEXÃO.",
+                                         "Mensagens de chat e client messages são exibidas no painel com os códigos de cor do SA-MP removidos.",
+                                         "A janela CONEXÃO deixou de ser modal; quando um /comando abre um dialog, o chat é ocultado temporariamente e o dialog integrado recebe foco no launcher principal.",
+                                         "Depois de responder ou fechar o dialog, a janela CONEXÃO volta automaticamente para continuar o chat.",
+                                         "Mantidos o envio de chat/comandos, bloqueio de comandos internos iniciados por !, 24/7, multi-servidor, Centro de Contas e configurações."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.12-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigido o Centro de Contas quando dados antigos vinham como System.Object[]: a leitura agora normaliza arrays e valores de servidor/porta antes de exibir os perfis.",
+                                         "A persistência de contas e regras passa a gravar coleções JSON de forma consistente, inclusive quando existe apenas uma conta.",
+                                         "A aba CONEXÃO agora abre um painel de chat: texto normal envia chat e /comando envia comando ao servidor pelo mesmo caminho do RakSAMP.",
+                                         "Por segurança, comandos internos do RakSAMP iniciados por ! são bloqueados, há limite de tamanho e intervalo mínimo entre envios.",
+                                         "A aba CONFIGURAÇÕES agora permite controlar atualizações automáticas, abertura maximizada e modo privado do painel.",
+                                         "Dialogs, modo 24/7, multi-servidor, fechamento na bandeja e limpeza dos códigos de cor permanecem preservados.",
+                                         "Chat no modo 24/7 requer Horizonte AFK Cloud v0.5.3 ou superior; chat local funciona diretamente nesta versão."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.11-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Removidos dos dialogs os códigos de cor do SA-MP, como {008BFF}, {FFFFFF} e {27AE60}, que estavam aparecendo como texto.",
+                                         "Título, corpo, opções de lista e botões dos dialogs agora são exibidos limpos, sem marcadores de formatação do servidor.",
+                                         "As respostas enviadas ao servidor continuam usando os valores originais, evitando quebrar login, spawn e seleções.",
+                                         "Mantidas as correções do modo 24/7, Centro de Contas e multi-servidor das versões anteriores."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.10-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigido o erro do PowerShell em que a variável automática Host, que é somente leitura, impedia o modo 24/7 de iniciar.",
+                                         "Corrigida a gravação de contas no accounts-v1.json; contas usadas ou salvas passam a aparecer novamente no Centro de Contas.",
+                                         "Centro de Contas volta a reconciliar contas salvas com sessões 24/7 ativas da Discloud.",
+                                         "Conexão local continua independente: falhas de persistência de conta não interrompem o RakSAMP.",
+                                         "Mantidas as correções de fila multi-servidor, persistência ao fechar o launcher e Cloud Discloud v0.5.2."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.9-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigida regressão da 1.6.8-beta.1 que podia impedir até a conexão local antes de iniciar o RakSAMP.",
+                                         "Falhas ao registrar/sincronizar uma conta no Centro de Contas não interrompem mais o fluxo de conexão local.",
+                                         "Em caso de nova falha ao conectar, o painel e o log agora mostram a causa real em vez da mensagem genérica.",
+                                         "Mantidas as correções de persistência 24/7, reconciliação de contas e fila multi-servidor da versão anterior.",
+                                         "A versão foi elevada para 1.6.9-beta.1 para impedir o updater antigo de interpretar betas do mesmo 1.6.8 como equivalentes e regredir o executável."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.8-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Centro de Contas volta a listar e reconciliar contas salvas com sessões Cloud ativas.",
+                                         "Sessões 24/7 continuam na Discloud ao fechar ou sair do launcher; somente DESCONECTAR/ENCERRAR envia stop explícito.",
+                                         "Multi-servidor agora processa login, 2FA e dialogs em fila, um servidor por vez.",
+                                         "Ao concluir ou falhar uma sessão da fila, o próximo servidor é iniciado automaticamente.",
+                                         "State.json antigo de sessão encerrada não bloqueia mais a fila multi-servidor.",
+                                         "Atualização do Centro de Contas foi limitada para evitar consultas excessivas à Cloud, mantendo o botão Atualizar imediato.",
+                                         "Compatível com Horizonte AFK Cloud Discloud DIRECT v0.5.2."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.7-beta.3",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Fechar o Horizonte AFK ou usar Sair completamente não encerra mais sessões 24/7 na Discloud.",
+                                         "Atualizações/reinício do launcher apenas desacoplam a interface da sessão Cloud.",
+                                         "Uma sessão Cloud só é encerrada quando o usuário usa DESCONECTAR/ENCERRAR explicitamente no Centro de Contas.",
+                                         "O cliente deixou de usar DELETE genérico para parar contas e passa a usar o endpoint explícito /stop.",
+                                         "Exige Cloud v0.5.1 com explicit_stop_v2 e detach_safe para ativar novas conexões."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.7-beta.2",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigida a aplicação silenciosa do Centro de Contas que fazia a interface permanecer visualmente na v1.6.6-beta.4.",
+                                         "A nova aba CONTAS agora é exigida na validação do executável final antes da publicação.",
+                                         "Adicionado teste do PowerShell final e carregamento real da janela WPF para impedir promoção de builds com falha de runtime.",
+                                         "Mantidos Centro de Contas, sessões locais/nuvem, login rápido, persistência Cloud e o fail-safe do modo local."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.7-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Nova aba CONTAS na lateral com um UCP simples de contas e sessões.",
+                                         "Cada perfil salvo oferece conexão LOCAL ou 24/7 NA NUVEM.",
+                                         "Suporte a várias contas e visualização de sessões ativas/offline.",
+                                         "Após o primeiro login manual, respostas de dialogs podem ser lembradas para login rápido.",
+                                         "Dados de login rápido ficam protegidos pelo Windows; na Cloud ficam dentro do armazenamento criptografado.",
+                                         "Sessões 24/7 não são encerradas ao fechar completamente o Horizonte AFK; desconexão passa a ser explícita pelo Centro de Contas.",
+                                         "Mantém manual_spawn, parser de dialogs, modo local e fail-safe das betas anteriores."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.6-beta.4",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Modo 24/7 passa a usar o mesmo runmode Still do modo local.",
+                                         "O EXE só permite conexão Cloud quando o backend confirma manual_spawn_flow=true.",
+                                         "Login, 2FA e demais dialogs devem ocorrer antes do spawn, como na conexão local.",
+                                         "Mantidos console/chat puro, diagnóstico de IP e fail-safe do modo local."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.6-beta.3",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Modo 24/7 não tenta mais spawnar imediatamente ao conectar.",
+                                         "O RakSAMP Cloud permanece conectado processando RPCs/scripts para que login, 2FA e outros dialogs apareçam primeiro no EXE.",
+                                         "Mantém o chat/console puro da nuvem e o diagnóstico de IP da beta anterior.",
+                                         "Mantém o fail-safe: uma falha na camada Cloud não impede o modo local de abrir."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.6-beta.2",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "A área de log passa a mostrar a saída real do RakSAMP na Discloud, incluindo mensagens [CMSG] e eventos de conexão.",
+                                         "Adicionado diagnóstico do IP público estimado da nuvem quando o backend 0.4.1 estiver instalado.",
+                                         "Corrigida a versão interna do updater para corresponder à versão publicada e evitar atualização repetida.",
+                                         "A camada de diagnóstico possui fail-safe e não impede o modo local ou a interface de abrirem se algo falhar."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.6-beta.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Modo 24/7 voltou diretamente dentro do Horizonte AFK, sem abrir painel no navegador.",
+                                         "Corrigida a falha de sintaxe que podia fazer a beta anterior iniciar sem exibir a interface.",
+                                         "Adicionado teste que analisa e carrega o painel WPF final antes de permitir a publicação.",
+                                         "Adicionado fail-safe: se a camada Cloud não puder ser aplicada, o launcher mantém o modo local funcional.",
+                                         "Login, 2FA e dialogs da sessão Cloud continuam sendo exibidos no próprio EXE."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.5-hotfix",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Correção emergencial para o caso em que a v1.6.4-beta.2 podia iniciar sem exibir a interface.",
+                                         "Base visual e núcleo restaurados para o comportamento comprovadamente estável da v1.6.3.",
+                                         "Mantidos updater, bandeja, tela cheia, multi-servidor, conta adicional, login, 2FA e dialogs locais.",
+                                         "Integração Cloud 24/7 removida temporariamente da stable para ser revalidada em beta separada."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.4-beta.2",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Modo Cloud 24/7 passa a funcionar diretamente pelo Horizonte AFK, sem abrir navegador.",
+                                         "Login, 2FA, dialogs, listas e escolha de spawn da sessão remota são exibidos no próprio EXE.",
+                                         "A sessão roda na Discloud desde o início e continua online quando o computador é desligado.",
+                                         "Sessões Cloud existentes são recuperadas pelo EXE quando ele for aberto novamente.",
+                                         "Mantida a conexão local tradicional e os recursos da linha v1.6.3."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.4-beta",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Adicionado acesso ao modo Cloud 24/7 pelo painel do Horizonte AFK.",
+                                         "A integração usa o serviço hzrp.discloud.app já validado na Discloud.",
+                                         "Base da v1.6.3, bandeja, multi-servidor, conta adicional, login, 2FA, dialogs e updater foram preservados.",
+                                         "Versão publicada como beta para teste antes de substituir a versão estável."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.3",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigida a regressão da v1.6.2 que podia fazer o Horizonte_AFK.exe abrir sem exibir nenhuma janela.",
+                                         "O host próprio agora executa o painel como arquivo .ps1 real e preserva $PSScriptRoot e os caminhos internos do aplicativo.",
+                                         "Adicionado fallback automático para o Windows PowerShell tradicional caso o host próprio falhe em algum Windows específico.",
+                                         "O host passa a registrar erro interno para facilitar diagnóstico de incompatibilidades futuras.",
+                                         "Mantidas as correções de bandeja, identidade Horizonte AFK, multi-servidor, conta adicional, login, 2FA e dialogs.",
+                                         "Núcleo de conexão, RakSAMP e updater SHA-256 preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.2",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigido o comportamento ao clicar no × para manter o Horizonte AFK recuperável pela bandeja enquanto as sessões continuam ativas.",
+                                         "Removido o ciclo frequente de remoção e recriação do ícone da bandeja, que podia fazer o ícone desaparecer.",
+                                         "A integração agora observa TaskbarCreated e só refaz o registro do ícone quando o Windows Explorer realmente reconstrói a área de notificação.",
+                                         "Painel principal e sessões multi-servidor passam a usar um host próprio identificado pelo Windows como Horizonte AFK.",
+                                         "Processos AFK persistentes deixam de usar powershell.exe como processo visível no Gerenciador de Tarefas.",
+                                         "Mantida a conexão de uma conta adicional com nick diferente enquanto o modo multi-servidor permanece ativo.",
+                                         "Núcleo de conexão, login, 2FA, dialogs, tela cheia e updater SHA-256 preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Corrigida a persistência do ícone do Horizonte AFK na bandeja do Windows enquanto o aplicativo continua em execução.",
+                                         "A bandeja mantém uma cópia própria do ícone e refaz o registro com o Explorer quando necessário.",
+                                         "Falhas secundárias no menu da bandeja não removem mais o acesso ao aplicativo em execução.",
+                                         "No modo multi-servidor, servidor, nick e o botão de conectar permanecem disponíveis para uma conta adicional.",
+                                         "É possível conectar outra conta com nick diferente sem encerrar as sessões multi-servidor existentes.",
+                                         "Dialogs da conta adicional têm prioridade para evitar sobreposição com login e 2FA das sessões múltiplas.",
+                                         "Núcleo de conexão, dialogs, tela cheia e updater SHA-256 preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.6.0",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Clicar no × agora esconde o Horizonte AFK na bandeja do sistema e mantém as sessões AFK ativas.",
+                                         "Adicionado ícone oficial do Horizonte AFK à integração da janela e bandeja com o Windows.",
+                                         "Multi-servidor redesenhado para manter apenas um Horizonte AFK visível ao usuário.",
+                                         "Sessões extras continuam isoladas internamente, mas ficam ocultas da barra de tarefas e do Alt+Tab.",
+                                         "Status, tempo, login, 2FA, listas e dialogs das sessões múltiplas são centralizados no painel principal.",
+                                         "Adicionados controles para desconectar servidores individualmente ou encerrar todas as sessões múltiplas.",
+                                         "Tela cheia/F11, updater SHA-256 e núcleo de conexão/dialogs preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.5.0",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Fechar o painel agora minimiza a janela e mantém a sessão AFK ativa.",
+                                         "Adicionado botão de saída completa separado para encerrar a sessão e o launcher quando desejado.",
+                                         "Adicionado modo tela cheia/maximizado pelo botão, duplo clique na barra superior e tecla F11.",
+                                         "Adicionado modo multi-servidor para selecionar e conectar em vários Horizonte RP ao mesmo tempo.",
+                                         "Sessões multi-servidor ficam isoladas por processo/runtime, preservando login, 2FA e dialogs de cada servidor.",
+                                         "Mantidos o updater com SHA-256 e o núcleo de conexão/dialogs validado da linha 1.4.x."
+                                     ]
+                     },
+                     {
+                         "version":  "1.4.1",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Build de teste para validar atualização automática da 1.4.0.",
+                                         "Somente o número da versão foi alterado; painel, conexão e dialogs preservados."
+                                     ]
+                     },
+                     {
+                         "version":  "1.4.0",
+                         "date":  "2026-09-06",
+                         "changes":  [
+                                         "Novo visual e ícone integrados ao painel.",
+                                         "Preservados o núcleo de conexão e todos os dialogs da 1.3.0 validada.",
+                                         "Corrigida a tela do updater que falhava antes do download.",
+                                         "Atualização por versão/hash com SHA-256, substituição do mesmo EXE e restauração se o reinício falhar.",
+                                         "Pacote completo para instalação nova e atualização de instalações existentes.",
+                                         "Manifesto público compatível; disponibilizada reparação única para builds antigas com updater defeituoso."
+                                     ]
+                     },
+                     {
+                         "version":  "1.3.1",
+                         "date":  "2026-09-05",
+                         "changes":  [
+                                         "Atualização de teste criada somente para validar o sistema automático.",
+                                         "Nenhuma alteração no núcleo de conexão, dialogs ou design da v1.3.0.",
+                                         "Ao ser publicada, a v1.3.0 deve exibir o aviso de nova atualização enquanto estiver aberta.",
+                                         "Ao clicar em Atualizar agora, o launcher deve baixar, validar, substituir o mesmo EXE e reiniciar mostrando v1.3.1.",
+                                         "Ao abrir a v1.3.0 depois da publicação, a atualização também deve ser aplicada antes do painel principal."
+                                     ]
+                     },
+                     {
+                         "version":  "1.3.0",
+                         "date":  "2026-09-05",
+                         "changes":  [
+                                         "Reaplicado o redesign público sem alterar o XML de conexão nem a rotina de dialogs da build validada.",
+                                         "Ao abrir um EXE desatualizado, o updater roda antes do painel e mostra uma tela própria com progresso.",
+                                         "Enquanto o launcher está aberto, ele verifica novas versões e mostra uma notificação discreta com Atualizar agora e Depois.",
+                                         "Atualizar agora encerra a sessão, baixa a build, valida SHA-256, substitui o mesmo Horizonte_AFK.exe e reinicia.",
+                                         "Atualizações da mesma versão também podem ser detectadas por mudança de hash do executável.",
+                                         "Mantidos todos os dialogs SA-MP integrados, incluindo login, senha, 2FA, listas, confirmações e spawn.",
+                                         "IPs, caminhos internos e chat bruto continuam ocultos na interface pública."
+                                     ]
+                     },
+                     {
+                         "version":  "1.2.3",
+                         "date":  "2026-09-05",
+                         "changes":  [
+                                         "Restaurado o modo de conexão da build validada no Horizonte.",
+                                         "Mantido o formato de um único Horizonte_AFK.exe."
+                                     ]
+                     },
+                     {
+                         "version":  "1.2.2",
+                         "date":  "2026-09-05",
+                         "changes":  [
+                                         "O programa passou a usar um único arquivo fixo chamado Horizonte_AFK.exe."
+                                     ]
+                     },
+                     {
+                         "version":  "1.1.0",
+                         "date":  "2026-09-05",
+                         "changes":  [
+                                         "Interface pública simplificada.",
+                                         "Suporte aos servidores Horizonte RP #1 até #5.",
+                                         "Dialogs do SA-MP integrados ao painel.",
+                                         "Modo AFK headless sem abrir o GTA."
+                                     ]
+                     }
+                 ]
 }

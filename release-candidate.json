@@ -1,14 +1,14 @@
-{
-  "product": "Horizonte AFK",
-  "channel": "beta",
-  "version": "1.6.55-beta.1",
-  "published_at": "2026-09-08T02:26:15Z",
-  "available": true,
-  "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.55-beta.1/Horizonte_AFK.exe",
-  "sha256": "0079d132ca1963e1073c8914f4e321fe65f0894ae6a4875ab88db8cbf7dc941c",
-  "size_bytes": 5908992,
-  "encoding": "none",
-  "notes": "Corrige a causa raiz da perda de vínculo no CONEXÕES E CHAT: recarga de contas e leitura de páginas no Windows PowerShell. Validada por mais de três minutos com a Cloud real, sem quedas de vínculo.",
-  "min_supported_version": "1.2.0"
+﻿{
+    "product":  "Horizonte AFK",
+    "channel":  "beta",
+    "version":  "1.6.56-beta.1",
+    "published_at":  "2026-09-08T18:25:39Z",
+    "available":  true,
+    "mandatory":  false,
+    "download_url":  "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.56-beta.1/Horizonte_AFK.exe",
+    "sha256":  "a62da3c84cf4531ff8547a720571dd81a603bccc559b1cd1fa4f84ac7cdcd82d",
+    "size_bytes":  5908992,
+    "encoding":  "none",
+    "notes":  "Corrige dialogs simultÃ¢neos de mÃºltiplas contas: cada dialog agora Ã© vinculado Ã  sessÃ£o/conta dona, respostas sÃ£o roteadas para o session_id correto e reconexÃµes usam geraÃ§Ã£o Ãºnica de dialog. Requer Cloud 0.5.15.",
+    "min_supported_version":  "1.2.0"
 }
