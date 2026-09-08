@@ -1,0 +1,90 @@
+name: Diagnose v1.6.55 auto updater
+on:
+  push:
+    branches: [diag/v1655-auto-updater]
+    paths:
+      - '.github/workflows/diag-v1655-auto-updater.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact public v1.6.55
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force diag | Out-Null
+          gh release download v1.6.55-beta.1 --pattern Horizonte_AFK.exe --dir diag
+          $p='diag/Horizonte_AFK.exe'
+          $sha=(Get-FileHash $p -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size=(Get-Item $p).Length
+          Write-Host "v1655_size=$size"
+          Write-Host "v1655_sha=$sha"
+          if($sha-ne'0079d132ca1963e1073c8914f4e321fe65f0894ae6a4875ab88db8cbf7dc941c'){throw 'Unexpected v1.6.55 asset hash'}
+      - name: Extract updater strings from exact EXE
+        shell: python
+        run: |
+          import re
+          p=r'diag/Horizonte_AFK.exe'
+          data=open(p,'rb').read()
+          strings=[x.decode('ascii','replace') for x in re.findall(rb'[\x20-\x7e]{6,}',data)]
+          interesting=[]
+          for s in strings:
+              low=s.lower()
+              if ('latest.json' in low or 'raw.githubusercontent.com' in low or 'horizonte-afk-releases' in low or
+                  '$manifesturl' in low or '$currentversion' in low or 'invoke-restmethod' in low or
+                  'atualiza' in low or re.search(r'\b1\.6\.\d+(?:-beta\.1)?\b',s)):
+                  interesting.append(s)
+          print('--- INTERESTING STRINGS ---')
+          seen=set()
+          for s in interesting:
+              if s in seen: continue
+              seen.add(s)
+              print(s[:4000])
+          print('--- VERSION TOKENS ---')
+          toks=[]
+          for m in re.finditer(rb'1\.6\.\d+(?:-beta\.1)?',data):
+              t=m.group().decode()
+              if t not in toks: toks.append(t)
+          print(toks)
+          print('--- MANIFEST URL PRESENT ---')
+          target=b'https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/latest.json'
+          print(target in data)
+      - name: Verify manifest as v1.6.55 updater sees it
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $u='https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/latest.json'
+          $headers=@{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK/1.6.55-beta.1'}
+          $m=Invoke-RestMethod -Uri ($u+'?t='+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -UseBasicParsing -TimeoutSec 7 -Headers $headers
+          Write-Host ('remote_version='+[string]$m.version)
+          Write-Host ('remote_available='+[string]$m.available)
+          Write-Host ('remote_mandatory='+[string]$m.mandatory)
+          Write-Host ('remote_sha='+[string]$m.sha256)
+          Write-Host ('remote_size='+[string]$m.size_bytes)
+          Write-Host ('remote_url='+[string]$m.download_url)
+          if([string]$m.version-ne'1.6.58-beta.1'){throw 'Manifest is not v1.6.58'}
+          if(-not $m.available){throw 'Manifest unavailable'}
+      - name: Emulate v1.6.55 version decision and download
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          function V([string]$v){$c=($v-replace'^[vV]','').Split('-')[0];try{return [version]$c}catch{return [version]'0.0.0'}}
+          $m=Invoke-RestMethod -Uri ('https://raw.githubusercontent.com/guilhermedigv/Horizonte-AFK-Releases/main/latest.json?t='+[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -UseBasicParsing -TimeoutSec 7 -Headers @{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK/1.6.55-beta.1'}
+          $rv=V([string]$m.version)
+          foreach($local in @('1.6.0','1.6.55','1.6.55-beta.1')){
+            $lv=V($local)
+            Write-Host "decision local=$local lv=$lv remote=$rv newer=$($rv-gt$lv)"
+            if($rv-le$lv){throw "Remote not newer than $local"}
+          }
+          $out='diag/latest.exe'
+          Invoke-WebRequest -Uri ([string]$m.download_url) -UseBasicParsing -TimeoutSec 60 -OutFile $out -Headers @{'Cache-Control'='no-cache';'User-Agent'='Horizonte-AFK/1.6.55-beta.1'}
+          $h=(Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          $s=(Get-Item $out).Length
+          Write-Host "download_sha=$h"
+          Write-Host "download_size=$s"
+          if($h-ne([string]$m.sha256).ToLowerInvariant()){throw 'Downloaded hash mismatch'}
+          if($s-ne[int64]$m.size_bytes){throw 'Downloaded size mismatch'}
