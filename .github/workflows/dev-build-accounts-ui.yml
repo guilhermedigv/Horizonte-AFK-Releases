@@ -25,7 +25,7 @@ jobs:
           from pathlib import Path
           b=bytearray(Path('base.exe').read_bytes())
           start_marker=b'function Refresh-HZAccountsCenter'
-          end_marker=b'function Initialize-HZAccountCenter'
+          end_marker=b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.'
           start=b.find(start_marker); end=b.find(end_marker,start)
           if start<0 or end<0 or end<=start: raise SystemExit('account center source region not found')
           old_len=end-start
@@ -37,9 +37,7 @@ jobs:
           elif gap>=2: new+=b'#'+(b' '*(gap-2))+b'\n'
           assert len(new)==old_len
           b[start:end]=new
-          # Version strings have identical byte length, keeping every PE offset unchanged.
-          replacements=[(b'v1.6.48-beta.1',b'v1.6.49-beta.1'),(b'1.6.48-beta.1',b'1.6.49-beta.1')]
-          for old,newv in replacements:
+          for old,newv in [(b'v1.6.48-beta.1',b'v1.6.49-beta.1'),(b'1.6.48-beta.1',b'1.6.49-beta.1')]:
               pos=0;count=0
               while True:
                   i=b.find(old,pos)
@@ -53,22 +51,13 @@ jobs:
         run: |
           $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
           $latin=[Text.Encoding]::UTF8.GetString($bytes)
-          foreach($m in @('CONEXÕES E CHAT','function Open-HZUcpConnection','ItemTemplate="{StaticResource AccountRow}"','v1.6.49-beta.1','cloud_required_version')){if(-not $latin.Contains($m)){throw "Missing invariant/marker: $m"}}
+          foreach($m in @('CONEXÕES E CHAT','function Open-HZUcpConnection','ItemTemplate="{StaticResource R}"','v1.6.49-beta.1','cloud_required_version')){if(-not $latin.Contains($m)){throw "Missing invariant/marker: $m"}}
           foreach($m in @('ServerClosed','learned','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $latin.Contains($m)){throw "Missing v1.6.48 safety marker: $m"}}
-          $start=$latin.IndexOf('# Horizonte AFK Launcher')
-          if($start-lt0){throw 'script start marker missing'}
-          $end=$latin.IndexOf([char]0,$start)
-          if($end-lt0){$end=[Math]::Min($latin.Length,$start+500000)}
-          # Parse the full printable PowerShell payload region; trim after the last known launcher init marker if present.
+          $start=$latin.IndexOf('# Horizonte AFK Launcher');if($start-lt0){throw 'script start marker missing'}
           $src=$latin.Substring($start,[Math]::Min(470000,$latin.Length-$start))
-          $last=$src.LastIndexOf('Initialize-HZConnectionCenter')
-          if($last-gt0){$src=$src.Substring(0,[Math]::Min($src.Length,$last+20000))}
-          # Focused parse guarantees the replaced functions/XAML are syntactically valid without depending on binary tail decoding.
-          $a=$src.IndexOf('function Refresh-HZAccountsCenter');$z=$src.IndexOf('function Initialize-HZAccountCenter',$a)
+          $a=$src.IndexOf('function Refresh-HZAccountsCenter');$z=$src.IndexOf('# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',$a)
           if($a-lt0-or$z-lt0){throw 'patched function range missing'}
-          $focus=$src.Substring($a,$z-$a)
-          [void][scriptblock]::Create($focus)
-          Write-Host 'Focused PowerShell parse OK'
+          [void][scriptblock]::Create($src.Substring($a,$z-$a));Write-Host 'Focused PowerShell parse OK'
       - name: Validate PE structure unchanged
         shell: python
         run: |
