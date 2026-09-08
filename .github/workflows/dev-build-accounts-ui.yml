@@ -31,6 +31,7 @@ jobs:
           old_len=end-start
           new=Path('.release-staging/v1.6.49/accounts-ui-functions.ps1').read_bytes()
           if new.startswith(b'\xef\xbb\xbf'): new=new[3:]
+          new=new.replace(b' BorderBrush="#633541"',b'',1)
           if len(new)>old_len: raise SystemExit(f'new account center too large: {len(new)} > {old_len}')
           gap=old_len-len(new)
           if gap==1: new+=b'\n'
@@ -45,7 +46,7 @@ jobs:
                   b[i:i+len(old)]=newv;pos=i+len(newv);count+=1
               print(old.decode(), 'replacements', count)
           Path('Horizonte_AFK.exe').write_bytes(b)
-          print('account_region_start',start,'region_len',old_len,'new_source_len',len(Path('.release-staging/v1.6.49/accounts-ui-functions.ps1').read_bytes()),'padding',gap)
+          print('account_region_start',start,'region_len',old_len,'patched_source_len',old_len-gap,'padding',gap)
       - name: Validate patched source markers and PowerShell syntax
         shell: pwsh
         run: |
