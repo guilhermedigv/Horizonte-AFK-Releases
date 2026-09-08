@@ -1,14 +1,14 @@
 {
   "product": "Horizonte AFK",
   "channel": "beta",
-  "version": "1.6.52-beta.1",
-  "published_at": "2026-09-08T01:42:21Z",
+  "version": "1.6.53-beta.1",
+  "published_at": "2026-09-08T01:53:13Z",
   "available": true,
   "mandatory": false,
-  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.52-beta.1/Horizonte_AFK.exe",
-  "sha256": "ad3521f309b67cdb830ad9370e209af70776af95e6a6928babfe27050bc73e7f",
+  "download_url": "https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.53-beta.1/Horizonte_AFK.exe",
+  "sha256": "91efd565c086c9ed7cd40b741e936a2a903e7b9b091e3b94054899020ae16c03",
   "size_bytes": 5908992,
   "encoding": "none",
-  "notes": "Corrige o handoff da conta e a seleção/criação de página ao abrir CONEXÕES E CHAT pelo Centro de Contas.",
+  "notes": "Corrige a reanexação de contas já conectadas ao CONEXÕES E CHAT, reconciliando o perfil local e forçando atualização da sessão Cloud antes de abrir o chat.",
   "min_supported_version": "1.2.0"
 }
