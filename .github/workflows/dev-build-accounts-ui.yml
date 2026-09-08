@@ -1,0 +1,88 @@
+name: Dev build accounts UI candidate
+on:
+  push:
+    branches:
+      - dev/accounts-ui-v1.6.49
+    paths:
+      - '.github/workflows/dev-build-accounts-ui.yml'
+      - '.release-staging/v1.6.49/accounts-ui-functions.ps1'
+permissions:
+  contents: read
+jobs:
+  patch:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact validated v1.6.48 artifact
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe' -OutFile base.exe
+          $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if($h -ne '6503925d26779557bc834e53bc96c886b6192e23ca54ef9eefb638ec9f4127b6'){throw "Unexpected base hash $h"}
+      - name: Patch only Account Center region
+        shell: python
+        run: |
+          from pathlib import Path
+          b=bytearray(Path('base.exe').read_bytes())
+          start_marker=b'function Refresh-HZAccountsCenter'
+          end_marker=b'function Initialize-HZAccountCenter'
+          start=b.find(start_marker); end=b.find(end_marker,start)
+          if start<0 or end<0 or end<=start: raise SystemExit('account center source region not found')
+          old_len=end-start
+          new=Path('.release-staging/v1.6.49/accounts-ui-functions.ps1').read_bytes()
+          if new.startswith(b'\xef\xbb\xbf'): new=new[3:]
+          if len(new)>old_len: raise SystemExit(f'new account center too large: {len(new)} > {old_len}')
+          gap=old_len-len(new)
+          if gap==1: new+=b'\n'
+          elif gap>=2: new+=b'#'+(b' '*(gap-2))+b'\n'
+          assert len(new)==old_len
+          b[start:end]=new
+          # Version strings have identical byte length, keeping every PE offset unchanged.
+          replacements=[(b'v1.6.48-beta.1',b'v1.6.49-beta.1'),(b'1.6.48-beta.1',b'1.6.49-beta.1')]
+          for old,newv in replacements:
+              pos=0;count=0
+              while True:
+                  i=b.find(old,pos)
+                  if i<0: break
+                  b[i:i+len(old)]=newv;pos=i+len(newv);count+=1
+              print(old.decode(), 'replacements', count)
+          Path('Horizonte_AFK.exe').write_bytes(b)
+          print('account_region_start',start,'region_len',old_len,'new_source_len',len(Path('.release-staging/v1.6.49/accounts-ui-functions.ps1').read_bytes()),'padding',gap)
+      - name: Validate patched source markers and PowerShell syntax
+        shell: pwsh
+        run: |
+          $bytes=[IO.File]::ReadAllBytes((Resolve-Path 'Horizonte_AFK.exe'))
+          $latin=[Text.Encoding]::UTF8.GetString($bytes)
+          foreach($m in @('CONEXÕES E CHAT','function Open-HZUcpConnection','ItemTemplate="{StaticResource AccountRow}"','v1.6.49-beta.1','cloud_required_version')){if(-not $latin.Contains($m)){throw "Missing invariant/marker: $m"}}
+          foreach($m in @('ServerClosed','learned','Get-HZActivePageCloudSessionId','reconciliation-only migration')){if(-not $latin.Contains($m)){throw "Missing v1.6.48 safety marker: $m"}}
+          $start=$latin.IndexOf('# Horizonte AFK Launcher')
+          if($start-lt0){throw 'script start marker missing'}
+          $end=$latin.IndexOf([char]0,$start)
+          if($end-lt0){$end=[Math]::Min($latin.Length,$start+500000)}
+          # Parse the full printable PowerShell payload region; trim after the last known launcher init marker if present.
+          $src=$latin.Substring($start,[Math]::Min(470000,$latin.Length-$start))
+          $last=$src.LastIndexOf('Initialize-HZConnectionCenter')
+          if($last-gt0){$src=$src.Substring(0,[Math]::Min($src.Length,$last+20000))}
+          # Focused parse guarantees the replaced functions/XAML are syntactically valid without depending on binary tail decoding.
+          $a=$src.IndexOf('function Refresh-HZAccountsCenter');$z=$src.IndexOf('function Initialize-HZAccountCenter',$a)
+          if($a-lt0-or$z-lt0){throw 'patched function range missing'}
+          $focus=$src.Substring($a,$z-$a)
+          [void][scriptblock]::Create($focus)
+          Write-Host 'Focused PowerShell parse OK'
+      - name: Validate PE structure unchanged
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib,struct
+          a=Path('base.exe').read_bytes(); b=Path('Horizonte_AFK.exe').read_bytes()
+          if len(a)!=len(b): raise SystemExit('PE size changed')
+          def mappe(x):
+            pe=struct.unpack_from('<I',x,0x3c)[0]; n=struct.unpack_from('<H',x,pe+6)[0]; opt=struct.unpack_from('<H',x,pe+20)[0]; s=pe+24+opt
+            return [(x[s+i*40:s+i*40+8].rstrip(b'\0'),struct.unpack_from('<II',x,s+i*40+16)) for i in range(n)]
+          if mappe(a)!=mappe(b): raise SystemExit('PE section map changed')
+          print('candidate_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Horizonte-AFK-v1.6.49-accounts-ui-candidate
+          path: Horizonte_AFK.exe
+          if-no-files-found: error
