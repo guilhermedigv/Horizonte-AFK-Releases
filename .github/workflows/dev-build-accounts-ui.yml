@@ -19,6 +19,17 @@ jobs:
           Invoke-WebRequest 'https://github.com/guilhermedigv/Horizonte-AFK-Releases/releases/download/v1.6.48-beta.1/Horizonte_AFK.exe' -OutFile base.exe
           $h=(Get-FileHash base.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           if($h -ne '6503925d26779557bc834e53bc96c886b6192e23ca54ef9eefb638ec9f4127b6'){throw "Unexpected base hash $h"}
+      - name: Validate Account Center WPF XAML
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName PresentationFramework
+          $raw=Get-Content '.release-staging/v1.6.49/accounts-ui-functions.ps1' -Raw -Encoding UTF8
+          $m=[regex]::Match($raw,"(?s)\$ux=@'\r?\n(.*?)\r?\n'@;")
+          if(-not $m.Success){throw 'Account Center XAML here-string not found'}
+          $reader=New-Object System.Xml.XmlNodeReader([xml]$m.Groups[1].Value)
+          $w=[Windows.Markup.XamlReader]::Load($reader)
+          if($w.Title-ne'Centro de Contas'-or$null-eq$w.FindName('Accounts')-or$null-eq$w.FindName('Refresh')){throw 'Account Center XAML controls missing'}
+          $w.Close();Write-Host 'Account Center WPF XAML load OK'
       - name: Patch only Account Center region
         shell: python
         run: |
@@ -59,18 +70,32 @@ jobs:
           $a=$src.IndexOf('function Refresh-HZAccountsCenter');$z=$src.IndexOf('# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',$a)
           if($a-lt0-or$z-lt0){throw 'patched function range missing'}
           [void][scriptblock]::Create($src.Substring($a,$z-$a));Write-Host 'Focused PowerShell parse OK'
-      - name: Validate PE structure unchanged
+      - name: Validate byte boundaries and PE structure
         shell: python
         run: |
           from pathlib import Path
           import hashlib,struct
           a=Path('base.exe').read_bytes(); b=Path('Horizonte_AFK.exe').read_bytes()
           if len(a)!=len(b): raise SystemExit('PE size changed')
+          start=a.find(b'function Refresh-HZAccountsCenter'); end=a.find(b'# Horizonte AFK 1.6 desktop/tray + unified multi-session controller.',start)
+          allowed=[(start,end)]
+          old=b'1.6.48-beta.1'; p=0; count=0
+          while True:
+              i=a.find(old,p)
+              if i<0: break
+              allowed.append((i,i+len(old)));count+=1;p=i+len(old)
+          if count!=4: raise SystemExit(f'unexpected version occurrence count: {count}')
+          bad=[]
+          for i,(x,y) in enumerate(zip(a,b)):
+              if x!=y and not any(lo<=i<hi for lo,hi in allowed):
+                  bad.append(i)
+                  if len(bad)>=10: break
+          if bad: raise SystemExit(f'bytes changed outside approved ranges: {bad}')
           def mappe(x):
             pe=struct.unpack_from('<I',x,0x3c)[0]; n=struct.unpack_from('<H',x,pe+6)[0]; opt=struct.unpack_from('<H',x,pe+20)[0]; s=pe+24+opt
             return [(x[s+i*40:s+i*40+8].rstrip(b'\0'),struct.unpack_from('<II',x,s+i*40+16)) for i in range(n)]
           if mappe(a)!=mappe(b): raise SystemExit('PE section map changed')
-          print('candidate_sha256',hashlib.sha256(b).hexdigest(),'size',len(b))
+          print('candidate_sha256',hashlib.sha256(b).hexdigest(),'size',len(b),'approved_version_ranges',count)
       - uses: actions/upload-artifact@v4
         with:
           name: Horizonte-AFK-v1.6.49-accounts-ui-candidate
